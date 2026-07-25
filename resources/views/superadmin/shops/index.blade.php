@@ -5,14 +5,17 @@
 @section('content')
 
 @if(session('success'))
-<div class="alert alert-success" style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#22c55e;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
-    <i class="fas fa-check-circle" style="margin-left:8px;"></i>{{ session('success') }}
+<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#065f46;padding:14px 20px;border-radius:12px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+    <i class="fas fa-check-circle"></i> {{ session('success') }}
 </div>
 @endif
 
 <div class="card">
     <div class="card-header">
         <h3><i class="fas fa-store" style="color:var(--accent);margin-left:8px;"></i> قائمة المحلات</h3>
+        <a href="{{ route('superadmin.shops.create') }}" class="btn btn-gold btn-sm">
+            <i class="fas fa-plus"></i> إضافة محل
+        </a>
     </div>
     <div class="card-body" style="padding:0;">
         <div class="table-wrapper">
@@ -79,9 +82,12 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">
-                            <i class="fas fa-store" style="font-size:32px;opacity:0.3;display:block;margin-bottom:10px;"></i>
-                            لا توجد محلات مسجلة بعد
+                        <td colspan="7" style="text-align:center;padding:60px;color:var(--text-muted);">
+                            <i class="fas fa-store" style="font-size:40px;opacity:0.2;display:block;margin-bottom:14px;"></i>
+                            <p style="font-size:15px;margin-bottom:12px;">لا توجد محلات مسجلة بعد</p>
+                            <a href="{{ route('superadmin.shops.create') }}" class="btn btn-gold btn-sm">
+                                <i class="fas fa-plus"></i> إضافة أول محل
+                            </a>
                         </td>
                     </tr>
                     @endforelse
