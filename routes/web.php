@@ -8,6 +8,16 @@ use App\Http\Controllers\SuperAdmin\UserController as SuperAdminUser;
 use App\Http\Controllers\Admin\AuthController as AdminAuth;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 
+// Root -> redirect to shop login
+Route::get('/', function () {
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        if ($role === 'super_admin') return redirect()->route('superadmin.dashboard');
+        if ($role === 'admin')       return redirect()->route('admin.dashboard');
+    }
+    return redirect()->route('admin.login');
+});
+
 // =====================
 // Super Admin Routes
 // =====================
