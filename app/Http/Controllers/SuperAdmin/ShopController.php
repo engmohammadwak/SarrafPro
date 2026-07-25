@@ -40,7 +40,7 @@ class ShopController extends Controller
             'name'     => $validated['admin_name'],
             'email'    => $validated['admin_email'],
             'password' => Hash::make($validated['admin_password']),
-            'role'     => 'admin',
+            'role'     => 'shop_admin',
         ]);
 
         $shop = Shop::create([
@@ -77,7 +77,7 @@ class ShopController extends Controller
     {
         $admin = $shop->admin;
 
-        $rules = [
+        $validated = $request->validate([
             'name'           => 'required|string|max:255',
             'name_en'        => 'nullable|string|max:255',
             'license_number' => 'nullable|string|max:100',
@@ -87,11 +87,8 @@ class ShopController extends Controller
             'admin_name'     => 'required|string|max:255',
             'admin_email'    => 'required|email|unique:users,email,' . ($admin?->id ?? 0),
             'admin_password' => 'nullable|string|min:8',
-        ];
+        ]);
 
-        $validated = $request->validate($rules);
-
-        // Update shop
         $shop->update([
             'name'           => $validated['name'],
             'name_en'        => $validated['name_en'] ?? null,
@@ -101,7 +98,6 @@ class ShopController extends Controller
             'status'         => $validated['status'],
         ]);
 
-        // Update admin user
         if ($admin) {
             $adminData = [
                 'name'  => $validated['admin_name'],

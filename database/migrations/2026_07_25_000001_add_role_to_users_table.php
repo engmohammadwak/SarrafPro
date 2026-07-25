@@ -11,6 +11,9 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'role')) {
                 $table->enum('role', ['super_admin', 'shop_admin', 'user'])->default('user')->after('email');
+            } else {
+                // Alter existing column to ensure enum values are correct
+                $table->enum('role', ['super_admin', 'shop_admin', 'user'])->default('user')->change();
             }
             if (!Schema::hasColumn('users', 'is_active')) {
                 $table->boolean('is_active')->default(true)->after('role');

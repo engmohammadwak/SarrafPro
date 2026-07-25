@@ -13,7 +13,7 @@ class AdminMiddleware
             return redirect()->route('admin.login');
         }
 
-        if (auth()->user()->role !== 'admin') {
+        if (auth()->user()->role !== 'shop_admin') {
             auth()->logout();
             return redirect()->route('admin.login')
                 ->withErrors(['email' => 'هذا الحساب ليس حساب مدير محل.']);

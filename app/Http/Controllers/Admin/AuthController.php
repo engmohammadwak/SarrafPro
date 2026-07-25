@@ -12,7 +12,7 @@ class AuthController extends Controller
     {
         if (Auth::check()) {
             $role = Auth::user()->role;
-            if ($role === 'admin')       return redirect()->route('admin.dashboard');
+            if ($role === 'shop_admin') return redirect()->route('admin.dashboard');
             if ($role === 'super_admin') return redirect()->route('superadmin.dashboard');
         }
         return view('admin.auth.login');
@@ -32,13 +32,11 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
 
-            // Only allow admin role
-            if ($user->role !== 'admin') {
+            if ($user->role !== 'shop_admin') {
                 Auth::logout();
                 return back()->withErrors(['email' => 'هذا الحساب ليس حساب مدير محل.']);
             }
 
-            // Check if shop is active
             $shop = $user->shop;
             if ($shop && $shop->status !== 'active') {
                 Auth::logout();
