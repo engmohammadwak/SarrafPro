@@ -9,10 +9,16 @@ class SuperAdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!auth()->check() || auth()->user()->role !== 'super_admin') {
-            return redirect()->route('superadmin.login')
-                ->with('error', 'غير مصرح لك بالدخول');
+        if (!auth()->check()) {
+            return redirect()->route('superadmin.login');
         }
+
+        if (auth()->user()->role !== 'super_admin') {
+            auth()->logout();
+            return redirect()->route('superadmin.login')
+                ->withErrors(['email' => 'هذا الحساب ليس حساب سوبر أدمن']);
+        }
+
         return $next($request);
     }
 }

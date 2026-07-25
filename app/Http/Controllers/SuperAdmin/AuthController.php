@@ -10,6 +10,7 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
+        // Already logged in as super_admin → go to dashboard
         if (auth()->check() && auth()->user()->role === 'super_admin') {
             return redirect()->route('superadmin.dashboard');
         }
@@ -20,26 +21,32 @@ class AuthController extends Controller
     {
         $request->validate([
             'email'    => 'required|email',
-            'password' => 'required|min:6',
+            'password' => 'required',
         ], [
             'email.required'    => 'البريد الإلكتروني مطلوب',
             'email.email'       => 'البريد الإلكتروني غير صحيح',
             'password.required' => 'كلمة المرور مطلوبة',
-            'password.min'      => 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
         ]);
 
         $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials)) {
-            if (auth()->user()->role !== 'super_admin') {
-                Auth::logout();
-                return back()->withErrors(['email' => 'هذا الحساب ليس حساب سوبر أدمن']);
-            }
-            $request->session()->regenerate();
-            return redirect()->route('superadmin.dashboard');
+        if (!Auth::attempt($credentials, false)) {
+            return back()->withErrors([
+                'email' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+            ])->withInput($request->only('email'));
         }
 
-        return back()->withErrors(['email' => 'البريد الإلكتروني أو كلمة المرور غير صحيحة']);
+        // Check role after successful auth
+        if (auth()->user()->role !== 'super_admin') {
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'هذا الحساب ليس حساب سوبر أدمن',
+            ])->withInput($request->only('email'));
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('superadmin.dashboard'));
     }
 
     public function logout(Request $request)
