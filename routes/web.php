@@ -34,10 +34,10 @@ Route::prefix('super-admin')->name('superadmin.')->group(function () {
 
     Route::middleware('super_admin')->group(function () {
         Route::get('dashboard', [SuperAdminDashboard::class, 'index'])->name('dashboard');
-        Route::resource('shops', SuperAdminShop::class)->names('superadmin.shops');
+        Route::resource('shops', SuperAdminShop::class);
         Route::patch('shops/{shop}/suspend',  [SuperAdminShop::class, 'suspend'])->name('shops.suspend');
         Route::patch('shops/{shop}/activate', [SuperAdminShop::class, 'activate'])->name('shops.activate');
-        Route::resource('users', SuperAdminUser::class)->names('superadmin.users');
+        Route::resource('users', SuperAdminUser::class);
     });
 });
 
@@ -53,25 +53,25 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
 
         // Staff
-        Route::resource('staff', StaffController::class)->names('admin.staff');
+        Route::resource('staff', StaffController::class);
 
         // Customers
-        Route::resource('customers', CustomerController::class)->names('admin.customers');
+        Route::resource('customers', CustomerController::class);
 
         // Accounts
-        Route::resource('accounts', AccountController::class)->names('admin.accounts');
+        Route::resource('accounts', AccountController::class);
 
         // Agents
-        Route::resource('agents', AgentController::class)->names('admin.agents');
+        Route::resource('agents', AgentController::class);
 
         // Transactions
-        Route::get('transactions',        [TransactionController::class, 'index'])->name('transactions.index');
-        Route::get('transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
-        Route::post('transactions',       [TransactionController::class, 'store'])->name('transactions.store');
+        Route::get('transactions',               [TransactionController::class, 'index'])->name('transactions.index');
+        Route::get('transactions/create',        [TransactionController::class, 'create'])->name('transactions.create');
+        Route::post('transactions',              [TransactionController::class, 'store'])->name('transactions.store');
         Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
 
         // Settings
-        Route::get('settings',  [SettingsController::class, 'index'])->name('settings.index');
-        Route::put('settings',  [SettingsController::class, 'update'])->name('settings.update');
+        Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
     });
 });
