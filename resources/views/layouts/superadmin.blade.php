@@ -371,7 +371,7 @@
         </a>
     </nav>
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('superadmin.logout') }}">
             @csrf
             <button type="submit" style="background:none;border:none;width:100%;cursor:pointer;">
                 <a href="#" onclick="this.closest('form').submit(); return false;">
