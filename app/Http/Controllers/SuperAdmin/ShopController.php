@@ -7,7 +7,6 @@ use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class ShopController extends Controller
 {
@@ -37,7 +36,6 @@ class ShopController extends Controller
             'admin_password' => 'required|string|min:8',
         ]);
 
-        // Create the shop admin user
         $admin = User::create([
             'name'     => $validated['admin_name'],
             'email'    => $validated['admin_email'],
@@ -45,7 +43,6 @@ class ShopController extends Controller
             'role'     => 'admin',
         ]);
 
-        // Create the shop and link it to the admin user
         $shop = Shop::create([
             'name'           => $validated['name'],
             'name_en'        => $validated['name_en'] ?? null,
@@ -58,7 +55,6 @@ class ShopController extends Controller
             'admin_id'       => $admin->id,
         ]);
 
-        // Link user to shop
         $admin->update(['shop_id' => $shop->id]);
 
         return redirect()->route('superadmin.shops.index')
@@ -73,26 +69,57 @@ class ShopController extends Controller
 
     public function edit(Shop $shop)
     {
+        $shop->load('admin');
         return view('superadmin.shops.edit', compact('shop'));
     }
 
     public function update(Request $request, Shop $shop)
     {
-        $validated = $request->validate([
-            'name'   => 'required|string|max:255',
-            'status' => 'required|in:active,suspended,pending',
+        $admin = $shop->admin;
+
+        $rules = [
+            'name'           => 'required|string|max:255',
+            'name_en'        => 'nullable|string|max:255',
+            'license_number' => 'nullable|string|max:100',
+            'phone'          => 'nullable|string|max:20',
+            'city'           => 'nullable|string|max:100',
+            'status'         => 'required|in:active,suspended,pending',
+            'admin_name'     => 'required|string|max:255',
+            'admin_email'    => 'required|email|unique:users,email,' . ($admin?->id ?? 0),
+            'admin_password' => 'nullable|string|min:8',
+        ];
+
+        $validated = $request->validate($rules);
+
+        // Update shop
+        $shop->update([
+            'name'           => $validated['name'],
+            'name_en'        => $validated['name_en'] ?? null,
+            'license_number' => $validated['license_number'] ?? null,
+            'phone'          => $validated['phone'] ?? null,
+            'city'           => $validated['city'] ?? null,
+            'status'         => $validated['status'],
         ]);
 
-        $shop->update($validated);
+        // Update admin user
+        if ($admin) {
+            $adminData = [
+                'name'  => $validated['admin_name'],
+                'email' => $validated['admin_email'],
+            ];
+            if (!empty($validated['admin_password'])) {
+                $adminData['password'] = Hash::make($validated['admin_password']);
+            }
+            $admin->update($adminData);
+        }
 
-        return redirect()->route('superadmin.shops.index')
-            ->with('success', 'تم تحديث بيانات المحل بنجاح.');
+        return redirect()->route('superadmin.shops.show', $shop)
+            ->with('success', 'تم تحديث بيانات المحل والمدير بنجاح.');
     }
 
     public function destroy(Shop $shop)
     {
         $shop->delete();
-
         return redirect()->route('superadmin.shops.index')
             ->with('success', 'تم حذف المحل بنجاح.');
     }
