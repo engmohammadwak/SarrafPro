@@ -10,8 +10,10 @@ class AuthController extends Controller
 {
     public function showLogin()
     {
-        if (Auth::check() && Auth::user()->role === 'super_admin') {
-            return redirect()->route('admin.dashboard');
+        if (Auth::check()) {
+            $role = Auth::user()->role;
+            if ($role === 'admin')       return redirect()->route('admin.dashboard');
+            if ($role === 'super_admin') return redirect()->route('superadmin.dashboard');
         }
         return view('admin.auth.login');
     }
@@ -30,14 +32,17 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $user = Auth::user();
 
-            if ($user->role !== 'super_admin') {
+            // Only allow admin role
+            if ($user->role !== 'admin') {
                 Auth::logout();
-                return back()->withErrors(['email' => 'ليس لديك صلاحية الدخول']);
+                return back()->withErrors(['email' => 'هذا الحساب ليس حساب مدير محل.']);
             }
 
-            if (!$user->is_active) {
+            // Check if shop is active
+            $shop = $user->shop;
+            if ($shop && $shop->status !== 'active') {
                 Auth::logout();
-                return back()->withErrors(['email' => 'الحساب موقوف']);
+                return back()->withErrors(['email' => 'المحل موقوف حالياً. تواصل مع الدعم.']);
             }
 
             $request->session()->regenerate();
