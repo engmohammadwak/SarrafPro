@@ -3,7 +3,6 @@
 @section('page-title', 'لوحة التحكم')
 
 @section('content')
-<!-- Stats -->
 <div class="stats-grid">
     <div class="stat-card gold">
         <div class="stat-icon"><i class="fas fa-store"></i></div>
@@ -35,7 +34,6 @@
     </div>
 </div>
 
-<!-- Latest Shops -->
 <div class="card">
     <div class="card-header">
         <h3><i class="fas fa-store" style="color:var(--accent);margin-left:8px;"></i> أحدث المحلات المسجلة</h3>
@@ -67,10 +65,12 @@
                         <td>{{ $shop->admin->name ?? 'غير محدد' }}</td>
                         <td>{{ $shop->city ?? '-' }}</td>
                         <td>
-                            @if($shop->is_active)
+                            @if($shop->status === 'active')
                                 <span class="badge badge-success"><i class="fas fa-circle" style="font-size:8px;"></i> نشط</span>
-                            @else
+                            @elseif($shop->status === 'suspended')
                                 <span class="badge badge-danger"><i class="fas fa-circle" style="font-size:8px;"></i> موقوف</span>
+                            @else
+                                <span class="badge badge-warning"><i class="fas fa-circle" style="font-size:8px;"></i> معلق</span>
                             @endif
                         </td>
                         <td>

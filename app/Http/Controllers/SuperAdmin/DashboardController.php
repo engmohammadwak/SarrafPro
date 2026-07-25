@@ -11,8 +11,8 @@ class DashboardController extends Controller
     public function index()
     {
         $totalShops    = Shop::count();
-        $activeShops   = Shop::where('is_active', true)->count();
-        $inactiveShops = Shop::where('is_active', false)->count();
+        $activeShops   = Shop::where('status', 'active')->count();
+        $inactiveShops = Shop::where('status', 'suspended')->count();
         $totalUsers    = User::where('role', '!=', 'super_admin')->count();
         $latestShops   = Shop::with('admin')->latest()->take(10)->get();
 

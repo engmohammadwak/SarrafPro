@@ -4,22 +4,29 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Shop extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
+        'name_en',
+        'license_number',
         'phone',
-        'city',
+        'email',
         'address',
-        'is_active',
+        'city',
+        'country',
+        'logo',
+        'status',
+        'balance',
         'admin_id',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
+        'balance' => 'decimal:4',
     ];
 
     public function admin()
@@ -30,5 +37,10 @@ class Shop extends Model
     public function users()
     {
         return $this->hasMany(User::class, 'shop_id');
+    }
+
+    public function getIsActiveAttribute(): bool
+    {
+        return $this->status === 'active';
     }
 }
