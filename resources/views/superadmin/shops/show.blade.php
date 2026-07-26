@@ -80,20 +80,43 @@
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">تاريخ الإضافة</p>
                     <p style="font-weight:600;">{{ $shop->created_at->format('Y-m-d H:i') }}</p>
                 </div>
+
                 @if($shop->notes)
                 <div style="grid-column:1/-1">
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">ملاحظة</p>
                     <p style="background:#f8f9fc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;white-space:pre-wrap">{{ $shop->notes }}</p>
                 </div>
                 @endif
+
                 @if($shop->attachment)
+                @php
+                    $ext = strtolower(pathinfo($shop->attachment, PATHINFO_EXTENSION));
+                    $isImage = in_array($ext, ['jpg','jpeg','png','gif','webp']);
+                @endphp
                 <div style="grid-column:1/-1">
-                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">ملف مرفق</p>
-                    <a href="{{ Storage::url($shop->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
-                        <i class="fas fa-file-download"></i> تحميل الملف
-                    </a>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:10px;">ملف مرفق</p>
+                    @if($isImage)
+                        {{-- عرض الصورة مباشرةً --}}
+                        <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;display:inline-block;max-width:100%;">
+                            <img src="{{ Storage::url($shop->attachment) }}"
+                                 alt="ملف مرفق"
+                                 style="max-width:100%;max-height:400px;display:block;cursor:pointer;"
+                                 onclick="window.open(this.src,'_blank')">
+                        </div>
+                        <div style="margin-top:8px;">
+                            <a href="{{ Storage::url($shop->attachment) }}" target="_blank" class="btn btn-sm" style="background:#f3f4f6;color:#374151;">
+                                <i class="fas fa-expand-alt"></i> فتح بالحجم الكامل
+                            </a>
+                        </div>
+                    @else
+                        {{-- ملف PDF / Word — زر تحميل --}}
+                        <a href="{{ Storage::url($shop->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="fas fa-file-download"></i> تحميل الملف
+                        </a>
+                    @endif
                 </div>
                 @endif
+
             </div>
         </div>
     </div>
