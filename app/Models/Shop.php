@@ -7,22 +7,19 @@ class Shop extends Model {
     use SoftDeletes;
 
     protected $fillable = [
-        'name', 'username', 'owner_name', 'phone', 'email', 'address', 'status', 'created_by',
+        'name','name_en','username','license_number','phone','email','city','address',
+        'status','balance','notes','created_by',
     ];
 
-    // من أضاف هذا المحل
     public function creator() {
         return $this->belongsTo(User::class, 'created_by');
     }
-
     public function users() {
         return $this->hasMany(User::class);
     }
-
     public function admin() {
-        return $this->hasOne(User::class)->where('role', 'shop_admin');
+        return $this->hasOne(User::class)->where('role','shop_admin');
     }
-
     public function isActive()    { return $this->status === 'active'; }
     public function isSuspended() { return $this->status === 'suspended'; }
 }

@@ -8,24 +8,21 @@ class User extends Authenticatable {
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name', 'username', 'email', 'password', 'role', 'created_by',
+        'name','username','email','password','role','created_by','notes','attachment',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password','remember_token'];
 
     protected function casts(): array {
         return ['email_verified_at' => 'datetime', 'password' => 'hashed'];
     }
 
-    // من أضاف هذا المستخدم
     public function creator() {
         return $this->belongsTo(User::class, 'created_by');
     }
-
     public function shop() {
         return $this->belongsTo(Shop::class);
     }
-
     public function isAgent()      { return $this->role === 'agent'; }
     public function isAdmin()      { return $this->role === 'shop_admin'; }
     public function isSuperAdmin() { return $this->role === 'super_admin'; }

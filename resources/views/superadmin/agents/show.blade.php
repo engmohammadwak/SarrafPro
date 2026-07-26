@@ -2,7 +2,7 @@
 @section('title', $agent->name)
 @section('page-title', 'تفاصيل المندوب')
 @section('content')
-<div class="card" style="max-width:640px">
+<div class="card" style="max-width:680px">
     <div class="card-header">
         <h3><i class="fas fa-id-badge" style="color:var(--accent);margin-left:8px"></i> {{ $agent->name }}</h3>
         <div style="display:flex;gap:8px">
@@ -46,6 +46,20 @@
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">تاريخ الإضافة</p>
                 <p style="font-weight:600">{{ $agent->created_at->format('Y-m-d H:i') }}</p>
             </div>
+            @if($agent->notes)
+            <div style="grid-column:1/-1">
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">ملاحظة</p>
+                <p style="background:#f8f9fc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;white-space:pre-wrap">{{ $agent->notes }}</p>
+            </div>
+            @endif
+            @if($agent->attachment)
+            <div style="grid-column:1/-1">
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">ملف مرفق</p>
+                <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
+                    <i class="fas fa-file-download"></i> تحميل الملف
+                </a>
+            </div>
+            @endif
         </div>
     </div>
 </div>
