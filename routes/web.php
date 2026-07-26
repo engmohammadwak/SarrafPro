@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuth;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboard;
 use App\Http\Controllers\SuperAdmin\ShopController as SuperAdminShop;
@@ -16,24 +17,22 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Agent\AuthController as AgentAuth;
 use App\Http\Controllers\Agent\DashboardController as AgentDashboard;
 
-// Root
-Route::get('/', function () {
-    if (auth()->check()) {
-        $role = auth()->user()->role;
-        if ($role === 'super_admin') return redirect()->route('superadmin.dashboard');
-        if ($role === 'shop_admin')  return redirect()->route('admin.dashboard');
-        if ($role === 'agent')       return redirect()->route('agent.dashboard');
-    }
-    return redirect()->route('admin.login');
-});
+// =====================
+// تسجيل دخول موحد
+// =====================
+Route::get('/',      [LoginController::class, 'showLogin'])->name('login');
+Route::post('/login',[LoginController::class, 'login'])->name('login.post');
+Route::post('/logout',[LoginController::class, 'logout'])->name('logout');
+
+// ريدايركت للروابط القديمة
+Route::get('/admin/login',       fn() => redirect()->route('login'));
+Route::get('/super-admin/login', fn() => redirect()->route('login'));
+Route::get('/agent/login',       fn() => redirect()->route('login'));
 
 // =====================
 // Super Admin Routes
 // =====================
 Route::prefix('super-admin')->name('superadmin.')->group(function () {
-    Route::get('login',  [SuperAdminAuth::class, 'showLogin'])->name('login');
-    Route::post('login', [SuperAdminAuth::class, 'login'])->name('login.post');
-    Route::post('logout',[SuperAdminAuth::class, 'logout'])->name('logout');
     Route::middleware('super_admin')->group(function () {
         Route::get('dashboard', [SuperAdminDashboard::class, 'index'])->name('dashboard');
         Route::resource('shops', SuperAdminShop::class);
@@ -47,11 +46,8 @@ Route::prefix('super-admin')->name('superadmin.')->group(function () {
 // Admin (Shop) Routes
 // =====================
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('login',  [AdminAuth::class, 'showLogin'])->name('login');
-    Route::post('login', [AdminAuth::class, 'login'])->name('login.post');
-    Route::post('logout',[AdminAuth::class, 'logout'])->name('logout');
     Route::middleware('admin')->group(function () {
-        Route::get('dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
+        Route::get('dashboard', [AdminDashboard::class, 'index'])->name('admin.dashboard');
         Route::resource('staff', StaffController::class);
         Route::resource('customers', CustomerController::class);
         Route::resource('accounts', AccountController::class);
@@ -72,9 +68,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 // Agent Routes
 // =====================
 Route::prefix('agent')->name('agent.')->group(function () {
-    Route::get('login',  [AgentAuth::class, 'showLogin'])->name('login');
-    Route::post('login', [AgentAuth::class, 'login'])->name('login.post');
-    Route::post('logout',[AgentAuth::class, 'logout'])->name('logout');
     Route::middleware('agent')->group(function () {
         Route::get('dashboard', [AgentDashboard::class, 'index'])->name('dashboard');
     });
