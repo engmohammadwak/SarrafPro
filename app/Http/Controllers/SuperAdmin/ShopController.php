@@ -101,9 +101,15 @@ class ShopController extends Controller {
     }
 
     public function destroy(Shop $shop) {
-        if ($shop->attachment) Storage::disk('public')->delete($shop->attachment);
+        // حذف الملف المرفق
+        if ($shop->attachment) {
+            Storage::disk('public')->delete($shop->attachment);
+        }
+        // حذف جميع مستخدمي المحل حتى تتحرر إيميلاتهم
+        User::where('shop_id', $shop->id)->delete();
+        // حذف المحل (soft delete)
         $shop->delete();
-        return redirect()->route('superadmin.shops.index')->with('success', 'تمّ حذف المحل');
+        return redirect()->route('superadmin.shops.index')->with('success', 'تمّ حذف المحل وجميع مستخدميه');
     }
 
     public function suspend(Shop $shop) {
