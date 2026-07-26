@@ -3,13 +3,6 @@
 @section('page-title', 'إدارة المحلات')
 
 @section('content')
-
-@if(session('success'))
-<div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#065f46;padding:14px 20px;border-radius:12px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
-    <i class="fas fa-check-circle"></i> {{ session('success') }}
-</div>
-@endif
-
 <div class="card">
     <div class="card-header">
         <h3><i class="fas fa-store" style="color:var(--accent);margin-left:8px;"></i> قائمة المحلات</h3>
