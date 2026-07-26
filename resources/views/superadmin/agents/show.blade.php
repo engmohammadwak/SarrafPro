@@ -4,7 +4,7 @@
 @section('content')
 <div class="card" style="max-width:640px">
     <div class="card-header">
-        <h3><i class="fas fa-id-badge" style="color:var(--accent);margin-left:8px;"></i> {{ $agent->name }}</h3>
+        <h3><i class="fas fa-id-badge" style="color:var(--accent);margin-left:8px"></i> {{ $agent->name }}</h3>
         <div style="display:flex;gap:8px">
             <a href="{{ route('superadmin.agents.edit', $agent) }}" class="btn btn-gold btn-sm"><i class="fas fa-edit"></i> تعديل</a>
             <a href="{{ route('superadmin.agents.index') }}" class="btn btn-sm" style="background:#e5e7eb;color:#374151"><i class="fas fa-arrow-right"></i> رجوع</a>
@@ -29,8 +29,22 @@
                 <p style="font-weight:600">{{ $agent->email }}</p>
             </div>
             <div>
-                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">تاريخ التسجيل</p>
-                <p style="font-weight:600">{{ $agent->created_at->format('Y-m-d') }}</p>
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">أضيفه</p>
+                @if($agent->creator)
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--primary)">{{ mb_substr($agent->creator->name,0,1) }}</div>
+                        <div>
+                            <p style="font-weight:600;font-size:14px">{{ $agent->creator->name }}</p>
+                            @if($agent->creator->username)<p style="font-size:12px;color:var(--text-muted)">&#64;{{ $agent->creator->username }}</p>@endif
+                        </div>
+                    </div>
+                @else
+                    <span style="color:#d1d5db">غير محدد</span>
+                @endif
+            </div>
+            <div>
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">تاريخ الإضافة</p>
+                <p style="font-weight:600">{{ $agent->created_at->format('Y-m-d H:i') }}</p>
             </div>
         </div>
     </div>

@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 class AgentController extends Controller {
 
     public function index() {
-        $agents = User::where('role', 'agent')->latest()->paginate(20);
+        $agents = User::with('creator')->where('role', 'agent')->latest()->paginate(20);
         return view('superadmin.agents.index', compact('agents'));
     }
 
@@ -23,13 +23,15 @@ class AgentController extends Controller {
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6',
         ]);
-        $data['role']     = 'agent';
-        $data['password'] = bcrypt($data['password']);
+        $data['role']       = 'agent';
+        $data['password']   = bcrypt($data['password']);
+        $data['created_by'] = auth()->id();
         User::create($data);
         return redirect()->route('superadmin.agents.index')->with('success', 'تمّ إضافة المندوب بنجاح');
     }
 
     public function show(User $agent) {
+        $agent->load('creator');
         return view('superadmin.agents.show', compact('agent'));
     }
 

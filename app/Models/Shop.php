@@ -7,8 +7,13 @@ class Shop extends Model {
     use SoftDeletes;
 
     protected $fillable = [
-        'name', 'username', 'owner_name', 'phone', 'email', 'address', 'status',
+        'name', 'username', 'owner_name', 'phone', 'email', 'address', 'status', 'created_by',
     ];
+
+    // من أضاف هذا المحل
+    public function creator() {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
     public function users() {
         return $this->hasMany(User::class);

@@ -7,9 +7,8 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller {
 
-    // بس super_admin
     public function index() {
-        $users = User::where('role', 'super_admin')->latest()->paginate(20);
+        $users = User::with('creator')->where('role', 'super_admin')->latest()->paginate(20);
         return view('superadmin.users.index', compact('users'));
     }
 
@@ -24,13 +23,15 @@ class UserController extends Controller {
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6',
         ]);
-        $data['role']     = 'super_admin';
-        $data['password'] = bcrypt($data['password']);
+        $data['role']       = 'super_admin';
+        $data['password']   = bcrypt($data['password']);
+        $data['created_by'] = auth()->id();
         User::create($data);
         return redirect()->route('superadmin.users.index')->with('success', 'تمّ إضافة المستخدم بنجاح');
     }
 
     public function show(User $user) {
+        $user->load('creator');
         return view('superadmin.users.show', compact('user'));
     }
 
