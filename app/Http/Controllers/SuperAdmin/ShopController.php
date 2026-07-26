@@ -5,6 +5,7 @@ use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class ShopController extends Controller {
 
@@ -21,15 +22,18 @@ class ShopController extends Controller {
         $data = $request->validate([
             'name'           => 'required|string|max:100',
             'name_en'        => 'nullable|string|max:100',
-            'username'       => 'nullable|string|max:50|alpha_dash|unique:shops,username',
+            'username'       => ['nullable','string','max:50','alpha_dash',
+                                  Rule::unique('shops','username')->whereNull('deleted_at')],
             'license_number' => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
-            'email'          => 'nullable|email|unique:shops,email',
+            'email'          => ['nullable','email',
+                                  Rule::unique('shops','email')->whereNull('deleted_at')],
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'admin_name'     => 'required|string|max:100',
-            'admin_email'    => 'required|email|unique:users,email',
+            'admin_email'    => ['required','email',
+                                  Rule::unique('users','email')->whereNull('deleted_at')],
             'admin_password' => 'required|min:6',
         ]);
 
@@ -77,10 +81,12 @@ class ShopController extends Controller {
         $data = $request->validate([
             'name'           => 'required|string|max:100',
             'name_en'        => 'nullable|string|max:100',
-            'username'       => 'nullable|string|max:50|alpha_dash|unique:shops,username,'.$shop->id,
+            'username'       => ['nullable','string','max:50','alpha_dash',
+                                  Rule::unique('shops','username')->ignore($shop->id)->whereNull('deleted_at')],
             'license_number' => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
-            'email'          => 'nullable|email|unique:shops,email,'.$shop->id,
+            'email'          => ['nullable','email',
+                                  Rule::unique('shops','email')->ignore($shop->id)->whereNull('deleted_at')],
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
