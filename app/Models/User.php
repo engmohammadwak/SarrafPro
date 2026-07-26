@@ -8,10 +8,11 @@ class User extends Authenticatable {
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name','username','email','password','role','created_by','notes','attachment',
+        'name','username','email','password','role','pin_code',
+        'created_by','notes','attachment',
     ];
 
-    protected $hidden = ['password','remember_token'];
+    protected $hidden = ['password','pin_code','remember_token'];
 
     protected function casts(): array {
         return ['email_verified_at' => 'datetime', 'password' => 'hashed'];
@@ -23,7 +24,8 @@ class User extends Authenticatable {
     public function shop() {
         return $this->belongsTo(Shop::class);
     }
-    public function isAgent()      { return $this->role === 'agent'; }
-    public function isAdmin()      { return $this->role === 'shop_admin'; }
-    public function isSuperAdmin() { return $this->role === 'super_admin'; }
+    public function hasPin(): bool    { return !empty($this->pin_code); }
+    public function isAgent()         { return $this->role === 'agent'; }
+    public function isAdmin()         { return $this->role === 'shop_admin'; }
+    public function isSuperAdmin()    { return $this->role === 'super_admin'; }
 }
