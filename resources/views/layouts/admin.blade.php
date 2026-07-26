@@ -61,10 +61,8 @@
         table td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
         table tr:last-child td { border-bottom: none; } table tr:hover td { background: #fafbff; }
         .badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; }
-        .badge-success { background: rgba(16,185,129,0.12); color: var(--success); }
-        .badge-danger  { background: rgba(239,68,68,0.12);  color: var(--danger); }
-        .badge-warning { background: rgba(245,158,11,0.12);  color: var(--warning); }
-        .badge-info    { background: rgba(59,130,246,0.12);  color: var(--info); }
+        .badge-success { background: rgba(16,185,129,0.12); color: var(--success); } .badge-danger  { background: rgba(239,68,68,0.12);  color: var(--danger); }
+        .badge-warning { background: rgba(245,158,11,0.12);  color: var(--warning); } .badge-info    { background: rgba(59,130,246,0.12);  color: var(--info); }
         .badge-gold    { background: rgba(201,168,76,0.12);  color: var(--accent); }
         .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: 'Tajawal', sans-serif; cursor: pointer; border: none; text-decoration: none; transition: all 0.2s; }
         .btn-primary { background: var(--primary); color: #fff; } .btn-primary:hover { background: #2d3561; }
@@ -93,33 +91,19 @@
     </div>
     <nav class="sidebar-menu">
         <div class="menu-section-title">الرئيسية</div>
-        <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
-            <i class="fas fa-th-large"></i> لوحة التحكم
-        </a>
+        <a href="{{ route('admin.dashboard') }}" class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"><i class="fas fa-th-large"></i> لوحة التحكم</a>
         <div class="menu-section-title">العمليات</div>
-        <a href="{{ route('admin.transactions.index') }}" class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-            <i class="fas fa-exchange-alt"></i> العمليات
-        </a>
-        <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers.*') ? 'active' : '' }}">
-            <i class="fas fa-users"></i> العملاء
-        </a>
+        <a href="{{ route('admin.transactions.index') }}" class="{{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}"><i class="fas fa-exchange-alt"></i> العمليات</a>
+        <a href="{{ route('admin.customers.index') }}" class="{{ request()->routeIs('admin.customers.*') ? 'active' : '' }}"><i class="fas fa-users"></i> العملاء</a>
         <div class="menu-section-title">الإدارة</div>
-        <a href="{{ route('admin.accounts.index') }}" class="{{ request()->routeIs('admin.accounts.*') ? 'active' : '' }}">
-            <i class="fas fa-wallet"></i> الحسابات
-        </a>
-        <a href="{{ route('admin.agents.index') }}" class="{{ request()->routeIs('admin.agents.*') ? 'active' : '' }}">
-            <i class="fas fa-handshake"></i> المناديب
-        </a>
-        <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}">
-            <i class="fas fa-id-badge"></i> الموظفون
-        </a>
+        <a href="{{ route('admin.accounts.index') }}" class="{{ request()->routeIs('admin.accounts.*') ? 'active' : '' }}"><i class="fas fa-wallet"></i> الحسابات</a>
+        <a href="{{ route('admin.agents.index') }}" class="{{ request()->routeIs('admin.agents.*') ? 'active' : '' }}"><i class="fas fa-handshake"></i> المناديب</a>
+        <a href="{{ route('admin.staff.index') }}" class="{{ request()->routeIs('admin.staff.*') ? 'active' : '' }}"><i class="fas fa-id-badge"></i> الموظفون</a>
         <div class="menu-section-title">الإعدادات</div>
-        <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-            <i class="fas fa-cog"></i> إعدادات المحل
-        </a>
+        <a href="{{ route('admin.settings.index') }}" class="{{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"><i class="fas fa-cog"></i> إعدادات المحل</a>
     </nav>
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('admin.logout') }}">
+        <form method="POST" action="{{ route('logout') }}">
             @csrf
             <button type="submit" style="background:none;border:none;width:100%;cursor:pointer;text-align:right">
                 <a href="#" onclick="this.closest('form').submit();return false;" style="display:flex;align-items:center;gap:10px;color:rgba(255,255,255,0.5);text-decoration:none;font-size:13.5px;padding:10px 12px;border-radius:10px;transition:all 0.2s;">
@@ -136,10 +120,7 @@
             <h1>@yield('page-title', 'لوحة التحكم')</h1>
         </div>
         <div class="topbar-right">
-            <div class="topbar-badge">
-                <div class="dot"></div>
-                <i class="fas fa-user"></i> {{ auth()->user()->name }}
-            </div>
+            <div class="topbar-badge"><div class="dot"></div><i class="fas fa-user"></i> {{ auth()->user()->name }}</div>
         </div>
     </header>
     <main class="page-content">
