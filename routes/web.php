@@ -52,25 +52,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::get('dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
 
-        // Staff
         Route::resource('staff', StaffController::class);
-
-        // Customers
         Route::resource('customers', CustomerController::class);
-
-        // Accounts
         Route::resource('accounts', AccountController::class);
 
         // Agents
         Route::resource('agents', AgentController::class);
+        Route::get('agents/check-user',          [AgentController::class, 'checkUser'])->name('agents.check-user');
+        Route::patch('agents/{agent}/approve-link', [AgentController::class, 'approveLink'])->name('agents.approve-link');
+        Route::patch('agents/{agent}/reject-link',  [AgentController::class, 'rejectLink'])->name('agents.reject-link');
 
-        // Transactions
         Route::get('transactions',               [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('transactions/create',        [TransactionController::class, 'create'])->name('transactions.create');
         Route::post('transactions',              [TransactionController::class, 'store'])->name('transactions.store');
         Route::get('transactions/{transaction}', [TransactionController::class, 'show'])->name('transactions.show');
 
-        // Settings
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
     });
