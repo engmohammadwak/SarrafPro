@@ -22,6 +22,8 @@ class AccountController extends Controller {
             'country'        => 'nullable|string|max:100',
             'currency'       => 'required|string|max:10',
             'account_number' => 'nullable|string|max:100',
+            'crypto_address' => 'nullable|string|max:255',
+            'crypto_network' => 'nullable|string|max:100',
             'balance'        => 'nullable|numeric',
             'notes'          => 'nullable|string',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
@@ -54,6 +56,8 @@ class AccountController extends Controller {
             'country'        => 'nullable|string|max:100',
             'currency'       => 'required|string|max:10',
             'account_number' => 'nullable|string|max:100',
+            'crypto_address' => 'nullable|string|max:255',
+            'crypto_network' => 'nullable|string|max:100',
             'notes'          => 'nullable|string',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);

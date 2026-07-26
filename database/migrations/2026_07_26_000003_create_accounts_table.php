@@ -8,12 +8,14 @@ return new class extends Migration {
         Schema::create('accounts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('shop_id')->constrained()->onDelete('cascade');
-            $table->string('name');                        // اسم البنك / الصراف / العملة
+            $table->string('name');
             $table->string('type');                        // cash, bank, exchange, crypto
-            $table->string('country')->nullable();         // الدولة
+            $table->string('country')->nullable();
             $table->string('currency')->default('OMR');
             $table->string('account_number')->nullable();  // رقم الحساب / IBAN
-            $table->string('attachment')->nullable();      // مسار الملف
+            $table->string('crypto_address')->nullable();  // عنوان المحفظة
+            $table->string('crypto_network')->nullable();  // شبكة البلوكشين
+            $table->string('attachment')->nullable();
             $table->decimal('balance', 20, 4)->default(0);
             $table->text('notes')->nullable();
             $table->boolean('is_active')->default(true);

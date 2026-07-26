@@ -5,7 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 class Account extends Model {
     protected $fillable = [
         'shop_id','name','type','country','currency',
-        'account_number','attachment','balance','notes','is_active'
+        'account_number','crypto_address','crypto_network',
+        'attachment','balance','notes','is_active'
     ];
     protected $casts = ['is_active' => 'boolean', 'balance' => 'decimal:4'];
 
