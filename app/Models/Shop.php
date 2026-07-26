@@ -8,7 +8,7 @@ class Shop extends Model {
 
     protected $fillable = [
         'name','name_en','username','license_number','phone','email','city','address',
-        'status','balance','notes','created_by',
+        'status','balance','notes','attachment','created_by',
     ];
 
     public function creator() {

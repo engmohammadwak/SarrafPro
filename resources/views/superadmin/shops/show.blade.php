@@ -29,6 +29,14 @@
                     <p style="font-weight:600;">{{ $shop->name_en ?? '-' }}</p>
                 </div>
                 <div>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Username</p>
+                    @if($shop->username)
+                        <span style="background:#f3f4f6;padding:3px 12px;border-radius:8px;font-family:monospace;font-size:14px;font-weight:700">&#64;{{ $shop->username }}</span>
+                    @else
+                        <span style="color:#d1d5db">—</span>
+                    @endif
+                </div>
+                <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">رقم الترخيص</p>
                     <p style="font-weight:600;">{{ $shop->license_number ?? '-' }}</p>
                 </div>
@@ -72,6 +80,20 @@
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">تاريخ الإضافة</p>
                     <p style="font-weight:600;">{{ $shop->created_at->format('Y-m-d H:i') }}</p>
                 </div>
+                @if($shop->notes)
+                <div style="grid-column:1/-1">
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">ملاحظة</p>
+                    <p style="background:#f8f9fc;border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:14px;white-space:pre-wrap">{{ $shop->notes }}</p>
+                </div>
+                @endif
+                @if($shop->attachment)
+                <div style="grid-column:1/-1">
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">ملف مرفق</p>
+                    <a href="{{ Storage::url($shop->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
+                        <i class="fas fa-file-download"></i> تحميل الملف
+                    </a>
+                </div>
+                @endif
             </div>
         </div>
     </div>

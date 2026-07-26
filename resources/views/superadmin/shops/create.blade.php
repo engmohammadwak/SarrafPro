@@ -12,7 +12,7 @@
     </div>
     @endif
 
-    <form action="{{ route('superadmin.shops.store') }}" method="POST">
+    <form action="{{ route('superadmin.shops.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         {{-- بيانات المحل --}}
@@ -67,6 +67,16 @@
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">المدينة</label>
                         <input type="text" name="city" value="{{ old('city') }}"
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--text-dark);box-sizing:border-box">
+                    </div>
+
+                    <div style="grid-column:1/-1">
+                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">ملف مرفق <span style="font-size:12px;color:var(--text-muted);font-weight:400">(اختياري — PDF, صورة, Word)</span></label>
+                        <div style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;background:#fafbfc;cursor:pointer" onclick="document.getElementById('shopAttachment').click()">
+                            <i class="fas fa-cloud-upload-alt" style="font-size:28px;color:var(--text-muted);margin-bottom:8px;display:block"></i>
+                            <p style="font-size:13px;color:var(--text-muted);margin:0" id="shopAttachmentLabel">اضغط لاختيار ملف • الحجم الأقصى 5MB</p>
+                            <input type="file" id="shopAttachment" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none"
+                                onchange="document.getElementById('shopAttachmentLabel').textContent = this.files[0]?.name || 'اضغط لاختيار ملف'">
+                        </div>
                     </div>
 
                     <div style="grid-column:1/-1">

@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ShopController extends Controller {
 
@@ -26,10 +27,16 @@ class ShopController extends Controller {
             'email'          => 'nullable|email|unique:shops,email',
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
+            'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'admin_name'     => 'required|string|max:100',
             'admin_email'    => 'required|email|unique:users,email',
             'admin_password' => 'required|min:6',
         ]);
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('shops/attachments', 'public');
+        }
 
         $shop = Shop::create([
             'name'           => $data['name'],
@@ -40,16 +47,17 @@ class ShopController extends Controller {
             'email'          => $data['email'] ?? null,
             'city'           => $data['city'] ?? null,
             'notes'          => $data['notes'] ?? null,
+            'attachment'     => $attachmentPath,
             'status'         => 'active',
             'created_by'     => auth()->id(),
         ]);
 
         User::create([
-            'name'     => $data['admin_name'],
-            'email'    => $data['admin_email'],
-            'password' => bcrypt($data['admin_password']),
-            'role'     => 'shop_admin',
-            'shop_id'  => $shop->id,
+            'name'       => $data['admin_name'],
+            'email'      => $data['admin_email'],
+            'password'   => bcrypt($data['admin_password']),
+            'role'       => 'shop_admin',
+            'shop_id'    => $shop->id,
             'created_by' => auth()->id(),
         ]);
 
@@ -75,12 +83,20 @@ class ShopController extends Controller {
             'email'          => 'nullable|email|unique:shops,email,'.$shop->id,
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
+            'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
+
+        if ($request->hasFile('attachment')) {
+            if ($shop->attachment) Storage::disk('public')->delete($shop->attachment);
+            $data['attachment'] = $request->file('attachment')->store('shops/attachments', 'public');
+        }
+
         $shop->update($data);
         return redirect()->route('superadmin.shops.show', $shop)->with('success', 'تمّ تحديث بيانات المحل');
     }
 
     public function destroy(Shop $shop) {
+        if ($shop->attachment) Storage::disk('public')->delete($shop->attachment);
         $shop->delete();
         return redirect()->route('superadmin.shops.index')->with('success', 'تمّ حذف المحل');
     }
