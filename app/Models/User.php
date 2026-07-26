@@ -8,7 +8,7 @@ class User extends Authenticatable {
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name','username','email','password','role','pin_code',
+        'name','username','email','password','role','shop_id','pin_code',
         'created_by','notes','attachment',
     ];
 
