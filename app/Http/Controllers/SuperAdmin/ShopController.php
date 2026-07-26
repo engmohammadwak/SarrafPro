@@ -32,8 +32,7 @@ class ShopController extends Controller {
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'admin_name'     => 'required|string|max:100',
-            'admin_email'    => ['required','email',
-                                  Rule::unique('users','email')->whereNull('deleted_at')],
+            'admin_email'    => 'required|email|unique:users,email',
             'admin_password' => 'required|min:6',
         ]);
 
