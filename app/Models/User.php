@@ -1,41 +1,27 @@
 <?php
-
 namespace App\Models;
-
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
-{
+class User extends Authenticatable {
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'role',
-        'shop_id',
-        'is_active',
+        'name', 'username', 'email', 'password', 'role',
     ];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
-        ];
+    protected function casts(): array {
+        return ['email_verified_at' => 'datetime', 'password' => 'hashed'];
     }
 
-    public function shop()
-    {
-        return $this->belongsTo(Shop::class, 'shop_id');
+    public function shop() {
+        return $this->belongsTo(Shop::class);
     }
+
+    public function isAgent()      { return $this->role === 'agent'; }
+    public function isAdmin()      { return $this->role === 'shop_admin'; }
+    public function isSuperAdmin() { return $this->role === 'super_admin'; }
 }
