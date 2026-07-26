@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboard;
 use App\Http\Controllers\SuperAdmin\ShopController as SuperAdminShop;
 use App\Http\Controllers\SuperAdmin\UserController as SuperAdminUser;
+use App\Http\Controllers\SuperAdmin\AgentController as SuperAdminAgent;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\StaffController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -14,32 +15,25 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Agent\DashboardController as AgentDashboard;
 
-// =====================
 // تسجيل دخول موحد
-// =====================
 Route::get('/',       [LoginController::class, 'showLogin'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout',[LoginController::class, 'logout'])->name('logout');
-
-// ريدايركت للروابط القديمة
 Route::get('/admin/login',       fn() => redirect()->route('login'));
 Route::get('/super-admin/login', fn() => redirect()->route('login'));
 Route::get('/agent/login',       fn() => redirect()->route('login'));
 
-// =====================
-// Super Admin Routes  → superadmin.*
-// =====================
+// Super Admin Routes
 Route::prefix('super-admin')->name('superadmin.')->middleware('super_admin')->group(function () {
     Route::get('dashboard', [SuperAdminDashboard::class, 'index'])->name('dashboard');
     Route::resource('shops', SuperAdminShop::class);
     Route::patch('shops/{shop}/suspend',  [SuperAdminShop::class, 'suspend'])->name('shops.suspend');
     Route::patch('shops/{shop}/activate', [SuperAdminShop::class, 'activate'])->name('shops.activate');
-    Route::resource('users', SuperAdminUser::class);
+    Route::resource('users',  SuperAdminUser::class);   // super_admin فقط
+    Route::resource('agents', SuperAdminAgent::class);  // المناديب
 });
 
-// =====================
-// Admin (Shop) Routes  → admin.*
-// =====================
+// Admin (Shop) Routes
 Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::get('dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
     Route::resource('staff', StaffController::class);
@@ -57,9 +51,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 });
 
-// =====================
-// Agent Routes  → agent.*
-// =====================
+// Agent Routes
 Route::prefix('agent')->name('agent.')->middleware('agent')->group(function () {
     Route::get('dashboard', [AgentDashboard::class, 'index'])->name('dashboard');
 });

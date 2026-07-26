@@ -7,8 +7,9 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller {
 
+    // بس super_admin
     public function index() {
-        $users = User::where('role','!=','super_admin')->latest()->paginate(20);
+        $users = User::where('role', 'super_admin')->latest()->paginate(20);
         return view('superadmin.users.index', compact('users'));
     }
 
@@ -22,8 +23,8 @@ class UserController extends Controller {
             'username' => 'nullable|string|max:50|alpha_dash|unique:users,username',
             'email'    => 'required|email|unique:users,email',
             'password' => 'required|min:6',
-            'role'     => 'required|in:super_admin,shop_admin,agent,staff',
         ]);
+        $data['role']     = 'super_admin';
         $data['password'] = bcrypt($data['password']);
         User::create($data);
         return redirect()->route('superadmin.users.index')->with('success', 'تمّ إضافة المستخدم بنجاح');
@@ -43,7 +44,6 @@ class UserController extends Controller {
             'username' => ['nullable','string','max:50','alpha_dash', Rule::unique('users','username')->ignore($user->id)],
             'email'    => ['required','email', Rule::unique('users','email')->ignore($user->id)],
             'password' => 'nullable|min:6',
-            'role'     => 'required|in:super_admin,shop_admin,agent,staff',
         ]);
         if (empty($data['password'])) unset($data['password']);
         else $data['password'] = bcrypt($data['password']);
