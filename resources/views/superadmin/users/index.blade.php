@@ -19,7 +19,12 @@
                 @forelse($users as $user)
                 <tr>
                     <td style="color:var(--text-muted);font-size:13px">{{ $loop->iteration }}</td>
-                    <td style="font-weight:600">{{ $user->name }}</td>
+                    <td style="font-weight:600">
+                        {{ $user->name }}
+                        @if($user->id === auth()->id())
+                            <span style="background:rgba(212,175,55,0.15);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:20px;margin-right:6px;font-weight:600">أنت</span>
+                        @endif
+                    </td>
                     <td>
                         @if($user->username)
                             <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151">&#64;{{ $user->username }}</span>
@@ -32,10 +37,12 @@
                     <td style="display:flex;gap:6px">
                         <a href="{{ route('superadmin.users.show', $user) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></a>
                         <a href="{{ route('superadmin.users.edit', $user) }}" class="btn btn-sm btn-gold"><i class="fas fa-edit"></i></a>
+                        @if($user->id !== auth()->id())
                         <form action="{{ route('superadmin.users.destroy', $user) }}" method="POST" style="display:inline">
                             @csrf @method('DELETE')
                             <button class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')"><i class="fas fa-trash"></i></button>
                         </form>
+                        @endif
                     </td>
                 </tr>
                 @empty
