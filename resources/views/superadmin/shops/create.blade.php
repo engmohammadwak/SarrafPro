@@ -69,14 +69,50 @@
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--text-dark);box-sizing:border-box">
                     </div>
 
+                    {{-- منطقة رفع الملف مع بريفيو للصور --}}
                     <div style="grid-column:1/-1">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">ملف مرفق <span style="font-size:12px;color:var(--text-muted);font-weight:400">(اختياري — PDF, صورة, Word)</span></label>
-                        <div style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;background:#fafbfc;cursor:pointer" onclick="document.getElementById('shopAttachment').click()">
+
+                        {{-- زر الرفع --}}
+                        <div id="uploadZone"
+                             style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;background:#fafbfc;cursor:pointer;transition:border-color .2s"
+                             onclick="document.getElementById('shopAttachment').click()"
+                             ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+                             ondragleave="this.style.borderColor='var(--border)'"
+                             ondrop="handleDrop(event)">
                             <i class="fas fa-cloud-upload-alt" style="font-size:28px;color:var(--text-muted);margin-bottom:8px;display:block"></i>
-                            <p style="font-size:13px;color:var(--text-muted);margin:0" id="shopAttachmentLabel">اضغط لاختيار ملف • الحجم الأقصى 5MB</p>
-                            <input type="file" id="shopAttachment" name="attachment" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none"
-                                onchange="document.getElementById('shopAttachmentLabel').textContent = this.files[0]?.name || 'اضغط لاختيار ملف'">
+                            <p style="font-size:13px;color:var(--text-muted);margin:0" id="shopAttachmentLabel">اضغط أو اسحب وأفلت ملف • الحجم الأقصى 5MB</p>
+                            <input type="file" id="shopAttachment" name="attachment"
+                                   accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                   style="display:none"
+                                   onchange="handleFile(this.files[0])">
                         </div>
+
+                        {{-- بريفيو الصورة --}}
+                        <div id="imgPreviewWrap" style="display:none;margin-top:12px;position:relative;display:none">
+                            <img id="imgPreview"
+                                 src=""
+                                 alt="معاينة مسبقة"
+                                 style="max-width:100%;max-height:300px;border-radius:10px;border:1px solid var(--border);display:block">
+                            <button type="button" onclick="clearFile()"
+                                    style="position:absolute;top:8px;left:8px;background:rgba(239,68,68,.85);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                                &times;
+                            </button>
+                        </div>
+
+                        {{-- بريفيو ملف غير صورة --}}
+                        <div id="filePreviewWrap" style="display:none;margin-top:12px;background:#f8f9fc;border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:none;align-items:center;gap:12px">
+                            <i class="fas fa-file-alt" style="font-size:24px;color:var(--accent)"></i>
+                            <div style="flex:1">
+                                <p id="fileName" style="font-weight:600;font-size:14px;margin:0"></p>
+                                <p id="fileSize" style="font-size:12px;color:var(--text-muted);margin:0"></p>
+                            </div>
+                            <button type="button" onclick="clearFile()"
+                                    style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:Tajawal,sans-serif;font-size:13px">
+                                <i class="fas fa-times"></i> حذف
+                            </button>
+                        </div>
+
                     </div>
 
                     <div style="grid-column:1/-1">
@@ -127,4 +163,46 @@
 
     </form>
 </div>
+
+<script>
+const imageExts = ['jpg','jpeg','png','gif','webp'];
+
+function handleFile(file) {
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    document.getElementById('shopAttachmentLabel').textContent = file.name;
+    if (imageExts.includes(ext)) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('imgPreview').src = e.target.result;
+            document.getElementById('imgPreviewWrap').style.display = 'block';
+            document.getElementById('filePreviewWrap').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('imgPreviewWrap').style.display = 'none';
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        document.getElementById('filePreviewWrap').style.display = 'flex';
+    }
+}
+
+function clearFile() {
+    document.getElementById('shopAttachment').value = '';
+    document.getElementById('shopAttachmentLabel').textContent = 'اضغط أو اسحب وأفلت ملف • الحجم الأقصى 5MB';
+    document.getElementById('imgPreviewWrap').style.display = 'none';
+    document.getElementById('filePreviewWrap').style.display = 'none';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    document.getElementById('uploadZone').style.borderColor = 'var(--border)';
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('shopAttachment').files = dt.files;
+    handleFile(file);
+}
+</script>
 @endsection
