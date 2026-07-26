@@ -2,11 +2,6 @@
 @section('title', 'المناديب')
 @section('page-title', 'قائمة المناديب')
 @section('content')
-@if(session('success'))
-<div style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#16a34a;padding:12px 16px;border-radius:8px;margin-bottom:20px;">
-    <i class="fas fa-check-circle" style="margin-left:8px;"></i>{{ session('success') }}
-</div>
-@endif
 <div class="card">
     <div class="card-header">
         <h3><i class="fas fa-id-badge" style="color:var(--accent);margin-left:8px;"></i> المناديب</h3>
