@@ -48,6 +48,20 @@
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px">
                     </div>
 
+                    @if($agents->count())
+                    <div style="grid-column:1/-1">
+                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">تابع لمندوب <span style="font-size:12px;color:var(--text-muted)">اختياري</span></label>
+                        <select name="agent_id" style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px">
+                            <option value="">-- بدون مندوب --</option>
+                            @foreach($agents as $agent)
+                            <option value="{{ $agent->id }}" {{ old('agent_id', $account->agent_id) == $agent->id ? 'selected' : '' }}>
+                                {{ $agent->name }} @if($agent->company)({{ $agent->company }})@endif
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+
                     <div id="countryField">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">الدولة</label>
                         <input type="text" name="country" value="{{ old('country',$account->country) }}"
@@ -113,7 +127,6 @@
         </div>
     </form>
 </div>
-
 @push('scripts')
 <script>
 const cfg = {

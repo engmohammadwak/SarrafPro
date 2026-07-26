@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
+use App\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -9,16 +10,20 @@ class AccountController extends Controller {
     private function shopId() { return auth()->user()->shop_id; }
 
     public function index() {
-        $accounts = Account::where('shop_id', $this->shopId())->latest()->get();
+        $accounts = Account::where('shop_id', $this->shopId())->with('agent')->latest()->get();
         return view('admin.accounts.index', compact('accounts'));
     }
 
-    public function create() { return view('admin.accounts.create'); }
+    public function create() {
+        $agents = Agent::where('shop_id', $this->shopId())->where('is_active', true)->get();
+        return view('admin.accounts.create', compact('agents'));
+    }
 
     public function store(Request $request) {
         $v = $request->validate([
             'type'           => 'required|in:cash,bank,exchange,crypto',
             'name'           => 'required|string|max:255',
+            'agent_id'       => 'nullable|exists:agents,id',
             'country'        => 'nullable|string|max:100',
             'currency'       => 'required|string|max:10',
             'account_number' => 'nullable|string|max:100',
@@ -45,7 +50,8 @@ class AccountController extends Controller {
 
     public function edit(Account $account) {
         abort_if($account->shop_id !== $this->shopId(), 403);
-        return view('admin.accounts.edit', compact('account'));
+        $agents = Agent::where('shop_id', $this->shopId())->where('is_active', true)->get();
+        return view('admin.accounts.edit', compact('account', 'agents'));
     }
 
     public function update(Request $request, Account $account) {
@@ -53,6 +59,7 @@ class AccountController extends Controller {
         $v = $request->validate([
             'type'           => 'required|in:cash,bank,exchange,crypto',
             'name'           => 'required|string|max:255',
+            'agent_id'       => 'nullable|exists:agents,id',
             'country'        => 'nullable|string|max:100',
             'currency'       => 'required|string|max:10',
             'account_number' => 'nullable|string|max:100',

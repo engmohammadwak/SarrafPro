@@ -18,10 +18,10 @@
             <div class="card-body">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     @foreach([
-                        'cash'     => ['نقدي',      'fa-money-bill-wave'],
-                        'bank'     => ['بنك',         'fa-university'],
-                        'exchange' => ['صراف',        'fa-coins'],
-                        'crypto'   => ['عملة رقمية','fa-bitcoin-sign'],
+                        'cash'     => ['نقدي',       'fa-money-bill-wave'],
+                        'bank'     => ['بنك',          'fa-university'],
+                        'exchange' => ['صراف',         'fa-coins'],
+                        'crypto'   => ['عملة رقمية', 'fa-bitcoin-sign'],
                     ] as $val => [$label, $icon])
                     <label style="cursor:pointer">
                         <input type="radio" name="type" value="{{ $val }}"
@@ -38,20 +38,33 @@
             </div>
         </div>
 
-        {{-- حقول عامة --}}
+        {{-- بيانات الحساب --}}
         <div class="card" id="commonFields" style="margin-bottom:20px;display:none">
-            <div class="card-header"><h3 id="formTitle"><i class="fas fa-info-circle" style="color:var(--accent);margin-left:8px"></i> بيانات الحساب</h3></div>
+            <div class="card-header"><h3><i class="fas fa-info-circle" style="color:var(--accent);margin-left:8px"></i> بيانات الحساب</h3></div>
             <div class="card-body">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
 
-                    {{-- اسم --}}
                     <div style="grid-column:1/-1">
                         <label id="nameLbl" style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">الاسم *</label>
                         <input type="text" name="name" id="nameInput" value="{{ old('name') }}" required
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px">
                     </div>
 
-                    {{-- حقول غير كريبتو --}}
+                    {{-- مندوب (اختياري) --}}
+                    @if($agents->count())
+                    <div style="grid-column:1/-1">
+                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">تابع لمندوب <span style="font-size:12px;color:var(--text-muted)">اختياري</span></label>
+                        <select name="agent_id" style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px">
+                            <option value="">-- بدون مندوب --</option>
+                            @foreach($agents as $agent)
+                            <option value="{{ $agent->id }}" {{ old('agent_id') == $agent->id ? 'selected' : '' }}>
+                                {{ $agent->name }} @if($agent->company)({{ $agent->company }})@endif
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+
                     <div id="countryField">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">الدولة</label>
                         <input type="text" name="country" value="{{ old('country') }}" placeholder="عُمان"
@@ -70,7 +83,6 @@
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px">
                     </div>
 
-                    {{-- حقول خاصة بالعملات الرقمية --}}
                     <div id="cryptoFields" style="display:none;grid-column:1/-1">
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
                             <div style="grid-column:1/-1">
@@ -86,21 +98,18 @@
                         </div>
                     </div>
 
-                    {{-- رصيد افتتاحي --}}
                     <div style="grid-column:1/-1">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">رصيد افتتاحي</label>
                         <input type="number" step="0.0001" name="balance" value="{{ old('balance',0) }}"
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px">
                     </div>
 
-                    {{-- ملف --}}
                     <div style="grid-column:1/-1">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">إرفاق ملف <span style="font-size:12px;color:var(--text-muted)">(PDF أو صورة، حد أقصى 5MB)</span></label>
                         <input type="file" name="attachment" accept=".pdf,.jpg,.jpeg,.png"
                             style="width:100%;padding:8px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:13px">
                     </div>
 
-                    {{-- ملاحظات --}}
                     <div style="grid-column:1/-1">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">ملاحظات</label>
                         <textarea name="notes" rows="3" placeholder="اختياري"
@@ -116,7 +125,6 @@
         </div>
     </form>
 </div>
-
 @push('scripts')
 <script>
 const cfg = {
@@ -125,41 +133,26 @@ const cfg = {
     exchange: { name: 'اسم الصراف',           color: 'var(--success)', crypto: false },
     crypto:   { name: 'اسم العملة الرقمية',  color: '#8b5cf6',        crypto: true  },
 };
-
 function onTypeChange(val) {
     const c = cfg[val];
-
-    // highlight card
     Object.keys(cfg).forEach(k => {
         const card = document.getElementById('tc-' + k);
         card.style.borderColor = k === val ? cfg[k].color : 'var(--border)';
         card.style.background  = k === val ? cfg[k].color + '18' : '';
         card.style.color       = k === val ? cfg[k].color : '';
     });
-
-    // update name label
     document.getElementById('nameLbl').textContent = c.name + ' *';
     document.getElementById('nameInput').placeholder = 'اكتب ' + c.name;
-
-    // toggle crypto fields
     const isCrypto = c.crypto;
-    document.getElementById('cryptoFields').style.display      = isCrypto ? 'block' : 'none';
-    document.getElementById('countryField').style.display      = isCrypto ? 'none'  : 'block';
-    document.getElementById('currencyField').style.display     = isCrypto ? 'none'  : 'block';
-    document.getElementById('accountNumberField').style.display= isCrypto ? 'none'  : 'block';
-
-    // show form
+    document.getElementById('cryptoFields').style.display       = isCrypto ? 'block' : 'none';
+    document.getElementById('countryField').style.display       = isCrypto ? 'none'  : 'block';
+    document.getElementById('currencyField').style.display      = isCrypto ? 'none'  : 'block';
+    document.getElementById('accountNumberField').style.display = isCrypto ? 'none'  : 'block';
     document.getElementById('commonFields').style.display = 'block';
     document.getElementById('submitRow').style.display    = 'flex';
     document.getElementById('nameInput').focus();
 }
-
-// attach events
-document.querySelectorAll('.type-radio').forEach(r => {
-    r.addEventListener('change', () => onTypeChange(r.value));
-});
-
-// restore old() selection
+document.querySelectorAll('.type-radio').forEach(r => r.addEventListener('change', () => onTypeChange(r.value)));
 window.addEventListener('DOMContentLoaded', () => {
     const checked = document.querySelector('.type-radio:checked');
     if (checked) onTypeChange(checked.value);

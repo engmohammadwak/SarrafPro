@@ -4,13 +4,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Account extends Model {
     protected $fillable = [
-        'shop_id','name','type','country','currency',
+        'shop_id','agent_id','name','type','country','currency',
         'account_number','crypto_address','crypto_network',
         'attachment','balance','notes','is_active'
     ];
     protected $casts = ['is_active' => 'boolean', 'balance' => 'decimal:4'];
 
-    public function shop() { return $this->belongsTo(Shop::class); }
+    public function shop()  { return $this->belongsTo(Shop::class); }
+    public function agent() { return $this->belongsTo(Agent::class); }
     public function transactions() { return $this->hasMany(Transaction::class); }
 
     public static function typeLabel(string $type): string {
