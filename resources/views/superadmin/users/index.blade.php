@@ -38,7 +38,7 @@
                         <td style="font-weight:600;">{{ $user->name }}</td>
                         <td>
                             @if($user->username)
-                                <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151;">@{{ $user->username }}</span>
+                                <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151;">&#64;{{ $user->username }}</span>
                             @else
                                 <span style="color:#d1d5db;font-size:13px;">—</span>
                             @endif

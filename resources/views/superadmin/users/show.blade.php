@@ -14,7 +14,7 @@
             <a href="{{ route('superadmin.users.edit', $user) }}" class="btn btn-gold btn-sm">
                 <i class="fas fa-edit"></i> تعديل
             </a>
-            <a href="{{ route('superadmin.users.index') }}" class="btn btn-sm" style="background:var(--border);color:#374151;">
+            <a href="{{ route('superadmin.users.index') }}" class="btn btn-sm" style="background:#e5e7eb;color:#374151;">
                 <i class="fas fa-arrow-right"></i> رجوع
             </a>
         </div>
@@ -22,13 +22,13 @@
     <div class="card-body">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;">
             <div>
-                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px;الاسم الكامل">الاسم الكامل</p>
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px;">الاسم الكامل</p>
                 <p style="font-weight:700;font-size:16px;">{{ $user->name }}</p>
             </div>
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px;">Username</p>
                 @if($user->username)
-                    <span style="background:#f3f4f6;padding:5px 14px;border-radius:8px;font-size:15px;font-family:monospace;color:#1a1f3c;font-weight:700;">@{{ $user->username }}</span>
+                    <span style="background:#f3f4f6;padding:5px 14px;border-radius:8px;font-size:15px;font-family:monospace;color:#1a1f3c;font-weight:700;">&#64;{{ $user->username }}</span>
                 @else
                     <span style="color:#d1d5db;font-size:14px;">غير محدد</span>
                 @endif
