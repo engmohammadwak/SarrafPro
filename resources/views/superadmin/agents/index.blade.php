@@ -41,7 +41,6 @@
                             <a href="{{ route('superadmin.agents.show', $agent) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></a>
                             <a href="{{ route('superadmin.agents.edit', $agent) }}" class="btn btn-sm btn-gold"><i class="fas fa-edit"></i></a>
 
-                            {{-- تعليق / تفعيل --}}
                             @if($agent->status === 'active')
                             <form action="{{ route('superadmin.agents.suspend', $agent) }}" method="POST" style="display:inline">
                                 @csrf @method('PATCH')
