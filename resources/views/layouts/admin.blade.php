@@ -20,7 +20,8 @@
         body { font-family: 'Tajawal', sans-serif; background: var(--body-bg); color: var(--text-dark); min-height: 100vh; display: flex; }
         .sidebar { width: var(--sidebar-width); background: var(--sidebar-bg); min-height: 100vh; position: fixed; right: 0; top: 0; z-index: 1000; display: flex; flex-direction: column; transition: transform 0.3s ease; box-shadow: -4px 0 20px rgba(0,0,0,0.3); }
         .sidebar-logo { padding: 28px 24px 20px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 12px; }
-        .sidebar-logo .logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary); font-weight: 800; flex-shrink: 0; }
+        .sidebar-logo .logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--primary); font-weight: 800; flex-shrink: 0; overflow: hidden; }
+        .sidebar-logo .logo-icon img { width: 100%; height: 100%; object-fit: contain; }
         .sidebar-logo .logo-text h2 { color: #fff; font-size: 15px; font-weight: 800; line-height: 1.2; }
         .sidebar-logo .logo-text span { color: var(--accent); font-size: 11px; }
         .sidebar-menu { flex: 1; padding: 16px 0; overflow-y: auto; }
@@ -80,12 +81,19 @@
     @stack('styles')
 </head>
 <body>
+@php $shop = auth()->user()->shop; @endphp
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-        <div class="logo-icon">ص</div>
+        <div class="logo-icon">
+            @if($shop?->logo)
+                <img src="{{ Storage::url($shop->logo) }}" alt="{{ $shop->name }}">
+            @else
+                {{ mb_substr($shop->name ?? 'ص', 0, 1) }}
+            @endif
+        </div>
         <div class="logo-text">
-            <h2>{{ auth()->user()->shop->name ?? 'صراف برو' }}</h2>
+            <h2>{{ $shop->name ?? 'صراف برو' }}</h2>
             <span>لوحة تحكم المحل</span>
         </div>
     </div>
