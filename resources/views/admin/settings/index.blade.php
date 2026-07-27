@@ -1,44 +1,213 @@
 @extends('layouts.admin')
 @section('title', 'إعدادات المحل')
 @section('page-title', 'إعدادات المحل')
-@section('content')
-<div style="max-width:640px;display:flex;flex-direction:column;gap:20px">
 
+@push('styles')
+<style>
+/* ===== Settings Page ===== */
+.settings-wrap {
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Cards */
+.settings-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.07);
+    overflow: hidden;
+}
+.settings-card-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.settings-card-header i {
+    color: var(--accent);
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+}
+.settings-card-header h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin: 0;
+}
+.settings-card-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form Grid */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.form-grid .full { grid-column: 1 / -1; }
+
+/* Field */
+.field-label {
+    display: block;
+    margin-bottom: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+}
+.field-input {
+    width: 100%;
+    padding: 11px 14px;
+    background: #f8f9fc;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 10px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 14px;
+    color: #1a1f3c;
+    transition: border-color 0.2s, background 0.2s;
+    line-height: 1.5;
+}
+.field-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+}
+.field-input:disabled {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #e5e7eb;
+}
+.field-hint {
+    font-size: 11.5px;
+    color: #9ca3af;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.field-error {
+    color: #dc2626;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Logo Preview */
+.logo-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.logo-preview-box {
+    width: 88px;
+    height: 88px;
+    border-radius: 14px;
+    border: 2px dashed #d1d5db;
+    background: #f8f9fc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    transition: border-color 0.2s;
+}
+.logo-preview-box:hover { border-color: var(--accent); }
+.logo-preview-box img { width: 100%; height: 100%; object-fit: contain; }
+.logo-upload-info { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.logo-upload-info label.upload-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 2px;
+}
+.remove-logo-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #dc2626;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+/* Password section note */
+.section-note {
+    font-size: 13px;
+    color: #9ca3af;
+    padding: 10px 14px;
+    background: #f8f9fc;
+    border-radius: 8px;
+    border-right: 3px solid #e5e7eb;
+}
+
+/* Submit */
+.settings-submit {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 560px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .full { grid-column: 1; }
+    .settings-card-body { padding: 18px; }
+}
+</style>
+@endpush
+
+@section('content')
+<div class="settings-wrap">
+
+    {{-- Errors --}}
     @if($errors->any())
-    <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);color:#dc2626;padding:14px;border-radius:12px">
-        <i class="fas fa-exclamation-circle"></i>
-        <ul style="margin:8px 0 0 0;padding-right:18px">
-            @foreach($errors->all() as $e)<li style="font-size:13px">{{ $e }}</li>@endforeach
+    <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);color:#dc2626;padding:14px 18px;border-radius:12px;display:flex;flex-direction:column;gap:6px">
+        <div style="font-weight:600;font-size:14px"><i class="fas fa-exclamation-circle"></i> يرجى مراجعة الأخطاء التالية:</div>
+        <ul style="padding-right:20px;margin:0">
+            @foreach($errors->all() as $e)
+                <li style="font-size:13px">{{ $e }}</li>
+            @endforeach
         </ul>
     </div>
     @endif
 
-    <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('admin.settings.update') }}" method="POST" enctype="multipart/form-data" style="display:flex;flex-direction:column;gap:24px">
         @csrf @method('PUT')
 
         {{-- لوجو المحل --}}
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-image" style="color:var(--accent);margin-left:8px"></i> لوجو المحل</h3>
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="fas fa-image"></i>
+                <h3>لوجو المحل</h3>
             </div>
-            <div class="card-body">
-                <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-                    <div id="logo-preview-wrap" style="width:80px;height:80px;border-radius:16px;border:2px dashed var(--border);background:#f8f9fc;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+            <div class="settings-card-body">
+                <div class="logo-upload-row">
+                    <div class="logo-preview-box" id="logo-preview-wrap">
                         @if($shop->logo)
-                            <img id="logo-preview" src="{{ Storage::url($shop->logo) }}" alt="لوجو" style="width:100%;height:100%;object-fit:contain">
+                            <img id="logo-preview" src="{{ Storage::url($shop->logo) }}" alt="لوجو">
                         @else
-                            <img id="logo-preview" src="" alt="" style="width:100%;height:100%;object-fit:contain;display:none">
-                            <i id="logo-placeholder" class="fas fa-store" style="font-size:28px;color:#d1d5db"></i>
+                            <img id="logo-preview" src="" alt="" style="display:none">
+                            <i id="logo-placeholder" class="fas fa-store" style="font-size:26px;color:#d1d5db"></i>
                         @endif
                     </div>
-                    <div style="flex:1">
-                        <label style="display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--text-muted)">رفع لوجو جديد</label>
+                    <div class="logo-upload-info">
+                        <label class="upload-label">رفع لوجو جديد</label>
                         <input type="file" name="logo" id="logo-input" accept="image/*"
-                            style="font-size:13px;color:var(--text-muted)" onchange="previewLogo(this)">
-                        <p style="font-size:11px;color:#9ca3af;margin-top:5px">PNG, JPG, WebP — حد أقصى 2MB</p>
+                            style="font-size:13px;color:#6b7280" onchange="previewLogo(this)">
+                        <span class="field-hint">PNG, JPG, WebP &mdash; حد أقصى 2MB</span>
                         @if($shop->logo)
-                        <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:#dc2626;cursor:pointer">
-                            <input type="checkbox" name="remove_logo" value="1"> حذف اللوجو الحالي
+                        <label class="remove-logo-label">
+                            <input type="checkbox" name="remove_logo" value="1">
+                            حذف اللوجو الحالي
                         </label>
                         @endif
                     </div>
@@ -47,71 +216,73 @@
         </div>
 
         {{-- بيانات المحل --}}
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-store" style="color:var(--accent);margin-left:8px"></i> بيانات المحل</h3>
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="fas fa-store"></i>
+                <h3>بيانات المحل</h3>
             </div>
-            <div class="card-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="settings-card-body">
+                <div class="form-grid">
                     <div>
                         <label class="field-label">اسم المحل (عربي)</label>
-                        <input type="text" name="name" value="{{ old('name',$shop->name) }}" required class="field-input">
+                        <input type="text" name="name" value="{{ old('name', $shop->name) }}" required class="field-input" placeholder="مثال: الصراف الذهبي">
                     </div>
                     <div>
                         <label class="field-label">اسم المحل (إنجليزي)</label>
-                        <input type="text" name="name_en" value="{{ old('name_en',$shop->name_en) }}" class="field-input">
+                        <input type="text" name="name_en" value="{{ old('name_en', $shop->name_en) }}" class="field-input" placeholder="Golden Exchange">
                     </div>
                     <div>
                         <label class="field-label">الهاتف</label>
-                        <input type="text" name="phone" value="{{ old('phone',$shop->phone) }}" class="field-input">
+                        <input type="text" name="phone" value="{{ old('phone', $shop->phone) }}" class="field-input" placeholder="+968 XXXX XXXX">
                     </div>
                     <div>
                         <label class="field-label">المدينة</label>
-                        <input type="text" name="city" value="{{ old('city',$shop->city) }}" class="field-input">
+                        <input type="text" name="city" value="{{ old('city', $shop->city) }}" class="field-input" placeholder="مسقط">
                     </div>
-                    <div style="grid-column:1/-1">
+                    <div class="full">
                         <label class="field-label">رقم الترخيص</label>
-                        <input type="text" value="{{ $shop->license_number ?? '-' }}" disabled
-                            style="width:100%;padding:10px 14px;background:#f3f4f6;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:#9ca3af;cursor:not-allowed">
-                        <p style="font-size:11px;color:#9ca3af;margin-top:4px"><i class="fas fa-lock" style="font-size:10px"></i> رقم الترخيص لا يمكن تعديله من هنا</p>
+                        <input type="text" value="{{ $shop->license_number ?? '-' }}" disabled class="field-input">
+                        <span class="field-hint"><i class="fas fa-lock" style="font-size:10px"></i> رقم الترخيص لا يمكن تعديله من هنا</span>
                     </div>
                 </div>
             </div>
         </div>
 
         {{-- بيانات الحساب --}}
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-user-circle" style="color:var(--accent);margin-left:8px"></i> بيانات الحساب</h3>
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="fas fa-user-circle"></i>
+                <h3>بيانات الحساب</h3>
             </div>
-            <div class="card-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="settings-card-body">
+                <div class="form-grid">
                     <div>
                         <label class="field-label">البريد الإلكتروني</label>
-                        <input type="email" name="email" value="{{ old('email',$user->email) }}" class="field-input" placeholder="email@example.com">
+                        <input type="email" name="email" value="{{ old('email', $user->email) }}" class="field-input" placeholder="email@example.com">
                     </div>
                     <div>
-                        <label class="field-label">Username</label>
-                        <input type="text" name="username" value="{{ old('username',$user->username) }}" class="field-input" placeholder="username123">
+                        <label class="field-label">اسم المستخدم</label>
+                        <input type="text" name="username" value="{{ old('username', $user->username) }}" class="field-input" placeholder="username123">
                     </div>
                 </div>
             </div>
         </div>
 
         {{-- تغيير كلمة السر --}}
-        <div class="card">
-            <div class="card-header">
-                <h3><i class="fas fa-lock" style="color:var(--accent);margin-left:8px"></i> تغيير كلمة السر</h3>
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <i class="fas fa-lock"></i>
+                <h3>تغيير كلمة السر</h3>
             </div>
-            <div class="card-body">
-                <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">اترك الحقول فارغة إذا لا تريد تغيير كلمة السر</p>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-                    <div style="grid-column:1/-1">
+            <div class="settings-card-body">
+                <p class="section-note">اترك الحقول فارغة إذا لا تريد تغيير كلمة السر</p>
+                <div class="form-grid">
+                    <div class="full">
                         <label class="field-label">كلمة السر الحالية</label>
                         <input type="password" name="current_password" class="field-input" placeholder="أدخل كلمة السر الحالية"
                             @error('current_password') style="border-color:#dc2626" @enderror>
                         @error('current_password')
-                        <p style="color:#dc2626;font-size:12px;margin-top:4px">{{ $message }}</p>
+                            <span class="field-error"><i class="fas fa-exclamation-circle"></i> {{ $message }}</span>
                         @enderror
                     </div>
                     <div>
@@ -126,17 +297,16 @@
             </div>
         </div>
 
-        <div style="margin-top:4px">
-            <button type="submit" class="btn btn-gold"><i class="fas fa-save"></i> حفظ الإعدادات</button>
+        {{-- Submit --}}
+        <div class="settings-submit">
+            <button type="submit" class="btn btn-gold" style="padding:12px 28px;font-size:15px">
+                <i class="fas fa-save"></i> حفظ الإعدادات
+            </button>
+            <span style="font-size:13px;color:#9ca3af">سيتم تطبيق التغييرات فوراً</span>
         </div>
+
     </form>
 </div>
-
-<style>
-.field-label{display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--text-muted)}
-.field-input{width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--text);transition:border-color 0.2s}
-.field-input:focus{outline:none;border-color:var(--accent);background:#fff}
-</style>
 
 <script>
 function previewLogo(input) {
