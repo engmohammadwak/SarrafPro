@@ -19,7 +19,7 @@
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">Username</p>
                 @if($user->username)
-                    <span style="background:#f3f4f6;padding:5px 14px;border-radius:8px;font-size:15px;font-family:monospace;color:#1a1f3c;font-weight:700">&#64;{{ $user->username }}</span>
+                    <span style="background:#f3f4f6;padding:5px 14px;border-radius:8px;font-size:15px;font-family:monospace;color:#1a1f3c;font-weight:700">{{ $user->username }}</span>
                 @else
                     <span style="color:#d1d5db">غير محدد</span>
                 @endif
@@ -31,7 +31,7 @@
                         <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--primary)">{{ mb_substr($user->creator->name,0,1) }}</div>
                         <div>
                             <p style="font-weight:600;font-size:14px">{{ $user->creator->name }}</p>
-                            @if($user->creator->username)<p style="font-size:12px;color:var(--text-muted)">&#64;{{ $user->creator->username }}</p>@endif
+                            @if($user->creator->username)<p style="font-size:12px;color:var(--text-muted)">{{ $user->creator->username }}</p>@endif
                         </div>
                     </div>
                 @else
