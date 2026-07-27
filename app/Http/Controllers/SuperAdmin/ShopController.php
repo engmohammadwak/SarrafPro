@@ -26,7 +26,8 @@ class ShopController extends Controller {
             'username'       => ['required','string','max:50','alpha_dash',
                                   Rule::unique('shops','username')->withoutTrashed(),
                                   Rule::unique('users','username')],
-            'license_number' => 'nullable|string|max:50',
+            'license_number' => ['nullable','string','max:50',
+                                  Rule::unique('shops','license_number')->withoutTrashed()],
             'phone'          => 'nullable|string|max:20',
             'email'          => ['nullable','email',
                                   Rule::unique('shops','email')->withoutTrashed(),
@@ -36,6 +37,9 @@ class ShopController extends Controller {
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'admin_name'     => 'required|string|max:100',
             'admin_email'    => ['required','email', Rule::unique('users','email')],
+            'username'       => ['required','string','max:50','alpha_dash',
+                                  Rule::unique('shops','username')->withoutTrashed(),
+                                  Rule::unique('users','username')],
             'admin_password' => 'required|min:6',
         ]);
 
@@ -83,9 +87,7 @@ class ShopController extends Controller {
     }
 
     public function update(Request $request, Shop $shop) {
-        // جمع كل مستخدمي المحل
         $shopUserIds = User::where('shop_id', $shop->id)->pluck('id')->toArray();
-
         $adminId = $shop->admin?->id;
 
         $data = $request->validate([
@@ -98,14 +100,14 @@ class ShopController extends Controller {
                     ? [Rule::unique('users','username')->whereNotIn('id', $shopUserIds)]
                     : [Rule::unique('users','username')]
             ),
-            'license_number' => 'nullable|string|max:50',
+            'license_number' => ['nullable','string','max:50',
+                                  Rule::unique('shops','license_number')->ignore($shop->id)->withoutTrashed()],
             'phone'          => 'nullable|string|max:20',
             'email'          => ['nullable','email',
                                   Rule::unique('shops','email')->ignore($shop->id)->withoutTrashed()],
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
-            // حقول المدير — إلزامية
             'admin_name'     => 'required|string|max:100',
             'admin_email'    => [
                 'required', 'email',
