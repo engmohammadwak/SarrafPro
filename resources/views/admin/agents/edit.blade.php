@@ -32,6 +32,23 @@
                     <div><label class="e-lbl">الشركة</label>
                     <input type="text" name="company" value="{{ old('company',$agent->company) }}" class="e-inp"></div>
 
+                    {{-- حالة التفعيل --}}
+                    <div style="grid-column:1/-1">
+                        <label class="e-lbl">حالة المندوب</label>
+                        <div style="display:flex;align-items:center;gap:14px;padding:12px 16px;background:#f8f9fc;border:1.5px solid var(--border);border-radius:8px">
+                            <label class="toggle-switch" style="position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0">
+                                <input type="checkbox" name="is_active" value="1" id="isActiveToggle"
+                                    {{ old('is_active', $agent->is_active) ? 'checked' : '' }}
+                                    onchange="updateToggleLabel(this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span id="toggleLabel" style="font-size:14px;font-weight:600"
+                                  style="color:{{ $agent->is_active ? '#15803d' : '#6b7280' }}">
+                                {{ old('is_active', $agent->is_active) ? 'شغال' : 'معطل' }}
+                            </span>
+                        </div>
+                    </div>
+
                     {{-- ملف مرفق --}}
                     <div style="grid-column:1/-1">
                         <label class="e-lbl">
@@ -40,7 +57,6 @@
                         </label>
 
                         @if($agent->attachment)
-                        {{-- عرض الملف الحالي --}}
                         <div id="currentFile" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:rgba(59,130,246,0.07);border:1.5px solid rgba(59,130,246,0.25);border-radius:10px;margin-bottom:10px">
                             <div style="display:flex;align-items:center;gap:10px">
                                 @php
@@ -67,7 +83,6 @@
                         <input type="hidden" name="delete_attachment" id="deleteAttachment" value="0">
                         @endif
 
-                        {{-- رفع ملف جديد --}}
                         <label id="fileDropArea" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:2px dashed var(--border);border-radius:10px;cursor:pointer;transition:border-color .2s;background:#fafafa">
                             <input type="file" name="attachment" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="onFileChange(this)">
                             <i class="fas fa-cloud-upload-alt" style="font-size:20px;color:var(--text-muted)"></i>
@@ -94,10 +109,29 @@
 .e-inp{width:100%;padding:10px 14px;background:#f8f9fc;border:1.5px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--text-dark);transition:border-color .2s;box-sizing:border-box}
 .e-inp:focus{outline:none;border-color:var(--accent);background:#fff}
 #fileDropArea:hover{border-color:var(--accent)}
+
+/* Toggle switch */
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{
+    position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;
+    background:#d1d5db;border-radius:26px;transition:.3s;
+}
+.toggle-slider:before{
+    position:absolute;content:"";height:20px;width:20px;left:3px;bottom:3px;
+    background:white;border-radius:50%;transition:.3s;
+}
+.toggle-switch input:checked + .toggle-slider{background:#16a34a}
+.toggle-switch input:checked + .toggle-slider:before{transform:translateX(20px)}
 </style>
 
 @push('scripts')
 <script>
+function updateToggleLabel(cb){
+    const lbl = document.getElementById('toggleLabel');
+    lbl.textContent = cb.checked ? 'شغال' : 'معطل';
+    lbl.style.color  = cb.checked ? '#15803d' : '#6b7280';
+}
+
 function onFileChange(input){
     const label=document.getElementById('fileLabel');
     if(input.files&&input.files[0]){
