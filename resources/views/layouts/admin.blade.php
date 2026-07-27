@@ -128,7 +128,11 @@
             <h1>@yield('page-title', 'لوحة التحكم')</h1>
         </div>
         <div class="topbar-right">
-            <div class="topbar-badge"><div class="dot"></div><i class="fas fa-user"></i> {{ auth()->user()->name }}</div>
+            <div class="topbar-badge">
+                <div class="dot"></div>
+                <i class="fas fa-store"></i>
+                {{ $shop->name_en ?: $shop->name ?? 'صراف برو' }}
+            </div>
         </div>
     </header>
     <main class="page-content">
