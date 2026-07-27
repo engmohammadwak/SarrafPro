@@ -23,10 +23,9 @@ class ShopController extends Controller {
         $data = $request->validate([
             'name'           => 'required|string|max:100',
             'name_en'        => 'nullable|string|max:100',
-            // withoutTrashed() excludes soft-deleted rows from the uniqueness check
-            // so the DB insert won't hit a duplicate key on a previously deleted username
-            'username'       => ['nullable','string','max:50','alpha_dash',
-                                  Rule::unique('shops','username')->withoutTrashed()],
+            'username'       => ['required','string','max:50','alpha_dash',
+                                  Rule::unique('shops','username')->withoutTrashed(),
+                                  Rule::unique('users','username')],
             'license_number' => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
             'email'          => ['nullable','email',
@@ -36,7 +35,7 @@ class ShopController extends Controller {
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'admin_name'     => 'required|string|max:100',
-            'admin_email'    => 'required|email|unique:users,email',
+            'admin_email'    => ['required','email', Rule::unique('users','email')],
             'admin_password' => 'required|min:6',
         ]);
 
@@ -45,12 +44,11 @@ class ShopController extends Controller {
             $attachmentPath = $request->file('attachment')->store('shops/attachments', 'public');
         }
 
-        // Wrap in a transaction so both shop + user are created atomically
         DB::transaction(function () use ($data, $attachmentPath) {
             $shop = Shop::create([
                 'name'           => $data['name'],
                 'name_en'        => $data['name_en'] ?? null,
-                'username'       => $data['username'] ?? null,
+                'username'       => $data['username'],
                 'license_number' => $data['license_number'] ?? null,
                 'phone'          => $data['phone'] ?? null,
                 'email'          => $data['email'] ?? null,
@@ -61,9 +59,11 @@ class ShopController extends Controller {
                 'created_by'     => auth()->id(),
             ]);
 
+            // username of the shop_admin ALWAYS mirrors the shop username
             User::create([
                 'name'       => $data['admin_name'],
                 'email'      => $data['admin_email'],
+                'username'   => $data['username'],
                 'password'   => bcrypt($data['admin_password']),
                 'role'       => 'shop_admin',
                 'shop_id'    => $shop->id,
@@ -75,7 +75,7 @@ class ShopController extends Controller {
     }
 
     public function show(Shop $shop) {
-        $shop->load('creator');
+        $shop->load('creator','admin');
         return view('superadmin.shops.show', compact('shop'));
     }
 
@@ -87,8 +87,9 @@ class ShopController extends Controller {
         $data = $request->validate([
             'name'           => 'required|string|max:100',
             'name_en'        => 'nullable|string|max:100',
-            'username'       => ['nullable','string','max:50','alpha_dash',
-                                  Rule::unique('shops','username')->ignore($shop->id)->withoutTrashed()],
+            'username'       => ['required','string','max:50','alpha_dash',
+                                  Rule::unique('shops','username')->ignore($shop->id)->withoutTrashed(),
+                                  Rule::unique('users','username')->ignore($shop->admin?->id)],
             'license_number' => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
             'email'          => ['nullable','email',
@@ -103,7 +104,15 @@ class ShopController extends Controller {
             $data['attachment'] = $request->file('attachment')->store('shops/attachments', 'public');
         }
 
-        $shop->update($data);
+        DB::transaction(function () use ($shop, $data) {
+            $shop->update($data);
+
+            // Keep shop_admin username in sync with the shop username
+            if ($shop->admin) {
+                $shop->admin->update(['username' => $data['username']]);
+            }
+        });
+
         return redirect()->route('superadmin.shops.show', $shop)->with('success', 'تمّ تحديث بيانات المحل');
     }
 
