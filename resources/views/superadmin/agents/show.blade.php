@@ -2,7 +2,7 @@
 @section('title', $agent->name)
 @section('page-title', 'تفاصيل المندوب')
 @section('content')
-<div class="card" style="max-width:720px">
+<div class="card" style="max-width:760px">
     <div class="card-header">
         <h3><i class="fas fa-id-badge" style="color:var(--accent);margin-left:8px"></i> {{ $agent->name }}</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -31,27 +31,45 @@
     </div>
     <div class="card-body">
 
-        {{-- بطاقة الرصيد الإجمالي --}}
-        @if($totalBalance !== null)
-        <div style="background:linear-gradient(135deg,#0f766e,#0d9488);border-radius:14px;padding:20px 24px;margin-bottom:28px;display:flex;align-items:center;gap:16px;color:#fff">
-            <div style="width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
-                <i class="fas fa-wallet"></i>
-            </div>
-            <div>
-                <p style="font-size:12px;opacity:0.8;margin-bottom:4px">الرصيد الإجمالي في الحساب</p>
-                <p style="font-size:26px;font-weight:800;letter-spacing:0.5px;line-height:1">
-                    {{ number_format($totalBalance, 2) }}
-                    <span style="font-size:14px;font-weight:500;opacity:0.85;margin-right:4px">ر.ع</span>
-                </p>
+        {{-- بلوك الأرصدة حسب العملة --}}
+        @if($balances->count() > 0)
+        <div style="margin-bottom:28px">
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;font-weight:600;لترفونت">&#x1f4b0; الأرصدة المفعلة</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
+                @foreach($balances as $acc)
+                @php
+                    $colors = [
+                        'bank'     => ['bg'=>'#eff6ff','border'=>'#bfdbfe','text'=>'#1e40af','icon'=>'fa-university'],
+                        'exchange' => ['bg'=>'#fefce8','border'=>'#fde68a','text'=>'#92400e','icon'=>'fa-coins'],
+                        'crypto'   => ['bg'=>'#f5f3ff','border'=>'#ddd6fe','text'=>'#5b21b6','icon'=>'fa-bitcoin-sign'],
+                        'cash'     => ['bg'=>'#f0fdf4','border'=>'#bbf7d0','text'=>'#065f46','icon'=>'fa-money-bill-wave'],
+                    ];
+                    $c = $colors[$acc->type] ?? $colors['cash'];
+                @endphp
+                <div style="background:{{ $c['bg'] }};border:1px solid {{ $c['border'] }};border-radius:12px;padding:14px 16px">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                        <i class="fas {{ $c['icon'] }}" style="color:{{ $c['text'] }};font-size:14px"></i>
+                        <span style="font-size:11px;color:{{ $c['text'] }};font-weight:600;text-transform:uppercase;letter-spacing:0.5px">{{ $acc->currency }}</span>
+                    </div>
+                    <p style="font-size:22px;font-weight:800;color:#111;line-height:1;margin-bottom:4px">{{ number_format($acc->balance, 2) }}</p>
+                    <p style="font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $acc->name }}</p>
+                </div>
+                @endforeach
             </div>
         </div>
+        @elseif($agentRecord)
+        <div style="background:#f8f9fc;border:1px dashed var(--border);border-radius:12px;padding:16px 20px;margin-bottom:28px;display:flex;align-items:center;gap:12px;color:var(--text-muted)">
+            <i class="fas fa-wallet" style="font-size:18px;opacity:0.4"></i>
+            <p style="font-size:13px">لا يوجد حسابات مفعلة لهذا المندوب</p>
+        </div>
         @else
-        <div style="background:#f8f9fc;border:1px dashed var(--border);border-radius:14px;padding:18px 24px;margin-bottom:28px;display:flex;align-items:center;gap:12px;color:var(--text-muted)">
-            <i class="fas fa-wallet" style="font-size:20px;opacity:0.4"></i>
-            <p style="font-size:14px">لا يوجد سجل رصيد لهذا المندوب بعد</p>
+        <div style="background:#fff7ed;border:1px dashed #fed7aa;border-radius:12px;padding:16px 20px;margin-bottom:28px;display:flex;align-items:center;gap:12px;color:#92400e">
+            <i class="fas fa-link-slash" style="font-size:18px;opacity:0.5"></i>
+            <p style="font-size:13px">هذا المستخدم غير مربوط بسجل مندوب بعد</p>
         </div>
         @endif
 
+        {{-- بيانات الحساب --}}
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px">
 
             <div>
