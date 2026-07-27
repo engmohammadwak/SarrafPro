@@ -39,16 +39,6 @@
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;">
                     </div>
 
-                    {{-- Username --}}
-                    <div style="grid-column:1/-1;">
-                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">اسم المستخدم (Username) <span style="color:#ef4444;">*</span></label>
-                        <input type="text" name="username" value="{{ old('username', $shop->username) }}"
-                            style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;" required
-                            placeholder="مثال: sarraf_muscat"
-                            autocomplete="off" dir="ltr">
-                        <p style="font-size:12px;color:var(--text-muted);margin-top:5px;">حروف وأرقام وشرطة سفلية فقط — سيتم تحديثه تلقائياً على حساب مدير المحل</p>
-                    </div>
-
                     <div>
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">رقم الترخيص</label>
                         <input type="text" name="license_number" value="{{ old('license_number', $shop->license_number) }}"
@@ -105,6 +95,15 @@
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">بريد المدير (للدخول) <span style="color:#ef4444;">*</span></label>
                         <input type="email" name="admin_email" value="{{ old('admin_email', $shop->admin?->email) }}"
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;" required>
+                    </div>
+
+                    {{-- Username — في قسم المدير لأنه يُستخدم لتسجيل الدخول --}}
+                    <div style="grid-column:1/-1;">
+                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">اسم المستخدم (Username) <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="username" value="{{ old('username', $shop->username) }}"
+                            style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;"
+                            required autocomplete="off" dir="ltr" placeholder="مثال: sarraf_muscat">
+                        <p style="font-size:12px;color:var(--text-muted);margin-top:5px;">حروف وأرقام وشرطة سفلية فقط — يُستخدم لتسجيل دخول مدير المحل</p>
                     </div>
 
                     <div style="grid-column:1/-1;">
