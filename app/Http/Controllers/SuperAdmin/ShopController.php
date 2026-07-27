@@ -59,7 +59,6 @@ class ShopController extends Controller {
                 'created_by'     => auth()->id(),
             ]);
 
-            // username of the shop_admin ALWAYS mirrors the shop username
             User::create([
                 'name'       => $data['admin_name'],
                 'email'      => $data['admin_email'],
@@ -75,7 +74,7 @@ class ShopController extends Controller {
     }
 
     public function show(Shop $shop) {
-        $shop->load('creator','admin');
+        $shop->load('creator','updater','admin');
         return view('superadmin.shops.show', compact('shop'));
     }
 
@@ -104,12 +103,18 @@ class ShopController extends Controller {
             $data['attachment'] = $request->file('attachment')->store('shops/attachments', 'public');
         }
 
-        DB::transaction(function () use ($shop, $data) {
+        // سجّل مَن عمل التحديث
+        $data['updated_by'] = auth()->id();
+
+        DB::transaction(function () use ($shop, $data, $request) {
             $shop->update($data);
 
-            // Keep shop_admin username in sync with the shop username
             if ($shop->admin) {
-                $shop->admin->update(['username' => $data['username']]);
+                $adminData = ['username' => $data['username']];
+                if ($request->filled('admin_name'))     $adminData['name']     = $request->admin_name;
+                if ($request->filled('admin_email'))    $adminData['email']    = $request->admin_email;
+                if ($request->filled('admin_password')) $adminData['password'] = bcrypt($request->admin_password);
+                $shop->admin->update($adminData);
             }
         });
 
@@ -126,12 +131,12 @@ class ShopController extends Controller {
     }
 
     public function suspend(Shop $shop) {
-        $shop->update(['status' => 'suspended']);
+        $shop->update(['status' => 'suspended', 'updated_by' => auth()->id()]);
         return back()->with('success', 'تمّ تعليق المحل');
     }
 
     public function activate(Shop $shop) {
-        $shop->update(['status' => 'active']);
+        $shop->update(['status' => 'active', 'updated_by' => auth()->id()]);
         return back()->with('success', 'تمّ تفعيل المحل');
     }
 }

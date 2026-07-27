@@ -54,6 +54,8 @@
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">الرصيد</p>
                     <p style="font-weight:700;color:var(--accent);font-size:18px;">{{ number_format($shop->balance ?? 0, 4) }} <span style="font-size:13px;color:var(--text-muted);">OMR</span></p>
                 </div>
+
+                {{-- أضافه --}}
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">أضافه</p>
                     @if($shop->creator)
@@ -68,9 +70,35 @@
                         <span style="color:#d1d5db;">غير محدد</span>
                     @endif
                 </div>
+
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">تاريخ الإضافة</p>
                     <p style="font-weight:600;">{{ $shop->created_at->format('Y-m-d H:i') }}</p>
+                </div>
+
+                {{-- آخر تحديث --}}
+                <div>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">آخر تحديث</p>
+                    @if($shop->updated_by)
+                        <p style="font-weight:600;font-size:14px;">{{ $shop->updated_at->format('Y-m-d H:i') }}</p>
+                    @else
+                        <span style="color:#d1d5db;">—</span>
+                    @endif
+                </div>
+
+                <div>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">عدّله</p>
+                    @if($shop->updater)
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:30px;height:30px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;">{{ mb_substr($shop->updater->name,0,1) }}</div>
+                            <div>
+                                <p style="font-weight:600;font-size:14px;">{{ $shop->updater->name }}</p>
+                                @if($shop->updater->username)<p style="font-size:12px;color:var(--text-muted);">{{ $shop->updater->username }}</p>@endif
+                            </div>
+                        </div>
+                    @else
+                        <span style="color:#d1d5db;">—</span>
+                    @endif
                 </div>
 
                 @if($shop->notes)
