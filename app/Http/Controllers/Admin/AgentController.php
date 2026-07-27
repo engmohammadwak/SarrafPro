@@ -29,16 +29,23 @@ class AgentController extends Controller {
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
         }
 
-        // جلب بيانات المندوب المرتبط بهذا الحساب (إن وجد) لملء الحقول تلقائياً
+        // 1) نبحث عن agent مرتبط بهذا الـ user_id
         $agent = Agent::where('user_id', $user->id)->first();
+
+        // 2) إن لم نجد، نبحث بـ username أو name في جدول agents
+        //    (حالة المندوب أُضيف يدوياً بدون ربط حساب)
+        if (!$agent) {
+            $agent = Agent::where('name', $user->name)
+                          ->orWhere('name', $user->username)
+                          ->first();
+        }
 
         return response()->json([
             'found'    => true,
             'user_id'  => $user->id,
-            'name'     => $user->name,
+            'name'     => $agent?->name ?? $user->name,
             'username' => $user->username,
             'email'    => $user->email,
-            // بيانات المندوب المرتبط (قد تكون null إن لم يكن مندوباً بعد)
             'phone'    => $agent?->phone,
             'country'  => $agent?->country,
             'company'  => $agent?->company,
