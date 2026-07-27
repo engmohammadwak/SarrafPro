@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Agent;
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\DatabaseNotification;
 
 class DashboardController extends Controller
 {
@@ -38,6 +39,33 @@ class DashboardController extends Controller
 
         $notifications = auth()->user()->notifications()->latest()->paginate(20);
         return view('agent.notifications', compact('notifications'));
+    }
+
+    /**
+     * تعليم إشعار واحد كمقروء ثم التوجيه لـ URL الإشعار
+     */
+    public function markOneRead(string $id)
+    {
+        $notification = DatabaseNotification::where('id', $id)
+            ->where('notifiable_id', auth()->id())
+            ->where('notifiable_type', 'App\\Models\\User')
+            ->first();
+
+        $redirectUrl = route('agent.dashboard'); // fallback
+
+        if ($notification) {
+            $data = is_array($notification->data)
+                ? $notification->data
+                : json_decode($notification->data, true);
+
+            $redirectUrl = $data['url'] ?? $redirectUrl;
+
+            if (!$notification->read_at) {
+                $notification->markAsRead();
+            }
+        }
+
+        return redirect($redirectUrl);
     }
 
     public function reports()

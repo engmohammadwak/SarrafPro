@@ -215,7 +215,9 @@
                             $t    = $typeMap[$data['type'] ?? 'info']  ?? 'info';
                             $icon = $iconMap[$data['type'] ?? 'info']  ?? 'fa-bell';
                         @endphp
-                        <a href="{{ $data['url'] ?? route('agent.notifications') }}" class="notif-item {{ $notif->read_at ? '' : 'unread' }}">
+                        {{-- الرابط يمر عبر route mark-read الذي يعلّم الإشعار كمقروء ثم يعيد التوجيه --}}
+                        <a href="{{ route('agent.notifications.read-one', $notif->id) }}"
+                           class="notif-item {{ $notif->read_at ? '' : 'unread' }}">
                             <div class="notif-icon {{ $t }}"><i class="fas {{ $icon }}"></i></div>
                             <div class="notif-body">
                                 <p>{{ $data['title'] ?? $data['message'] ?? 'إشعار جديد' }}</p>
