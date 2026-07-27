@@ -22,16 +22,22 @@ class LoginController extends Controller {
         ]);
 
         $loginValue = $request->login;
-
-        // تحديد طريقة التحقق: إيميل أو username
         $field = filter_var($loginValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         if (!Auth::attempt([$field => $loginValue, 'password' => $request->password], $request->remember)) {
             return back()->withErrors(['login' => 'بيانات الدخول غير صحيحة'])->withInput();
         }
 
+        // تحقق من حالة الحساب
+        $user = auth()->user();
+        if (isset($user->status) && $user->status === 'suspended') {
+            Auth::logout();
+            $request->session()->invalidate();
+            return back()->withErrors(['login' => 'تم تعليق هذا الحساب'])->withInput();
+        }
+
         $request->session()->regenerate();
-        return $this->redirectByRole(auth()->user()->role);
+        return $this->redirectByRole($user->role);
     }
 
     public function logout(Request $request) {
@@ -43,11 +49,10 @@ class LoginController extends Controller {
 
     private function redirectByRole(string $role) {
         return match($role) {
-            'super_admin' => redirect()->route('superadmin.dashboard'),
-            'shop_admin'  => redirect()->route('admin.dashboard'),
-            'agent'       => redirect()->route('agent.dashboard'),
-            'staff'       => redirect()->route('admin.dashboard'),
-            default       => redirect()->route('login'),
+            'super_admin'            => redirect()->route('superadmin.dashboard'),
+            'admin', 'shop_admin', 'staff' => redirect()->route('admin.dashboard'),
+            'agent', 'cooperation'   => redirect()->route('agent.dashboard'),
+            default                  => redirect('/')->with('error', 'صلاحياتك غير محددة بعد'),
         };
     }
 }
