@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ❌ منع المتصفح من تخزين الصفحة (bfcache & cache) -->
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>@yield('title', 'صراف برو')</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
@@ -62,6 +66,7 @@
         .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:#2d3561}
         .btn-gold{background:linear-gradient(135deg,var(--accent),var(--accent-light));color:var(--primary)}.btn-gold:hover{opacity:.9}
         .btn-sm{padding:6px 14px;font-size:12.5px}
+        .btn-success{background:rgba(16,185,129,.1);color:var(--success)}.btn-success:hover{background:var(--success);color:#fff}
         .btn-danger{background:rgba(239,68,68,.1);color:var(--danger)}.btn-danger:hover{background:var(--danger);color:#fff}
         .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999}
         @media(max-width:768px){.sidebar{transform:translateX(100%)}.sidebar.open{transform:translateX(0)}.sidebar-overlay.show{display:block}.main-content{margin-right:0}.page-content{padding:16px}.btn-toggle-sidebar{display:block}.topbar{padding:0 16px}}
@@ -134,6 +139,13 @@ function toggleSidebar(){
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('show');
 }
+
+// ✅ منع bfcache: أعد تحميل الصفحة عند الرجوع إليها بزر Back
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+        window.location.reload();
+    }
+});
 </script>
 @stack('scripts')
 </body>
