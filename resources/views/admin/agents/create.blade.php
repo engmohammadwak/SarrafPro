@@ -54,11 +54,6 @@
                         <input type="text" name="company" id="f-company" value="{{ old('company') }}" class="field-inp">
                     </div>
 
-                    <div style="grid-column:1/-1">
-                        <label class="field-lbl">ملاحظات عامة <span style="font-size:12px;color:var(--text-muted)">تظهر للمندوب</span></label>
-                        <textarea name="notes" id="f-notes" rows="2" class="field-inp" placeholder="ملاحظات عامة...">{{ old('notes') }}</textarea>
-                    </div>
-
                     {{-- ملاحظات داخلية --}}
                     <div style="grid-column:1/-1">
                         <label class="field-lbl">
@@ -211,7 +206,7 @@ function onFileChange(input){
 const colors={none:'#94a3b8',existing:'var(--info)',create:'var(--success)'};
 
 function lockFields(lock){
-    ['f-name','f-phone','f-phone2','f-company','f-notes'].forEach(id=>{
+    ['f-name','f-phone','f-phone2','f-company'].forEach(id=>{
         const el=document.getElementById(id);if(el)el.readOnly=lock;
     });
     const cs=document.getElementById('countrySearch');if(cs)cs.readOnly=lock;
@@ -221,12 +216,11 @@ function fillFromUser(data){
     const nameEl=document.getElementById('f-name');
     if(nameEl&&data.name)nameEl.value=data.name;
 
-    const hasAgentData=data.phone||data.phone2||data.country||data.company||data.notes;
+    const hasAgentData=data.phone||data.phone2||data.country||data.company;
     if(hasAgentData){
         if(data.phone)  document.getElementById('f-phone').value=data.phone;
         if(data.phone2) document.getElementById('f-phone2').value=data.phone2;
         if(data.company)document.getElementById('f-company').value=data.company;
-        if(data.notes)  document.getElementById('f-notes').value=data.notes;
         if(data.country){document.getElementById('countryValue').value=data.country;document.getElementById('countrySearch').value=data.country;}
         lockFields(true);
     } else {
@@ -236,7 +230,7 @@ function fillFromUser(data){
 }
 
 function clearAutoFill(){
-    ['f-name','f-phone','f-phone2','f-company','f-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['f-name','f-phone','f-phone2','f-company'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('countryValue').value='';
     document.getElementById('countrySearch').value='';
     lockFields(false);
