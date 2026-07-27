@@ -46,7 +46,7 @@
     </div>
     @endif
 
-    <form method="POST" action="{{ route('superadmin.login.check') }}">
+    <form method="POST" action="{{ route('superadmin.login.post') }}">
         @csrf
         <div class="form-group">
             <label>البريد الإلكتروني أو اسم المستخدم</label>
