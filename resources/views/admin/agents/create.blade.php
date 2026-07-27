@@ -64,12 +64,35 @@
                     </div>
 
                     {{-- رفع ملف --}}
-                    <div style="grid-column:1/-1">
+                    <div style="grid-column:1/-1" id="attachmentSection">
                         <label class="field-lbl">
                             <i class="fas fa-paperclip" style="color:var(--info);font-size:12px;margin-left:4px"></i>
                             ملف مرفق <span style="font-size:12px;color:var(--text-muted)">اختياري &mdash; PDF, صورة, Word (5MB كحد أقصى)</span>
                         </label>
-                        <label id="fileDropArea" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px dashed var(--border);border-radius:10px;cursor:pointer;transition:border-color .2s;background:#fafafa">
+
+                        {{-- منطقة عرض الملف بعد الاختيار --}}
+                        <div id="filePreview" style="display:none;margin-bottom:10px">
+                            {{-- preview صورة --}}
+                            <div id="imgPreviewWrap" style="display:none;border-radius:10px;overflow:hidden;border:1.5px solid var(--border);background:#f3f4f6;max-height:260px;text-align:center">
+                                <img id="imgPreviewEl" src="" alt="معاينة الصورة" style="max-width:100%;max-height:260px;object-fit:contain;display:block;margin:0 auto">
+                            </div>
+                            {{-- معلومات الملف --}}
+                            <div id="fileInfoBar" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:rgba(59,130,246,0.07);border:1.5px solid rgba(59,130,246,0.22);border-radius:10px;margin-top:8px">
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <i id="fileIconEl" class="fas fa-file" style="font-size:22px"></i>
+                                    <div>
+                                        <div id="fileNameEl" style="font-size:14px;font-weight:600;color:var(--text-dark)"></div>
+                                        <div id="fileSizeEl" style="font-size:12px;color:var(--text-muted)"></div>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="removeFile()" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#ef4444;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-family:Tajawal,sans-serif;white-space:nowrap">
+                                    <i class="fas fa-trash-alt"></i> حذف
+                                </button>
+                            </div>
+                        </div>
+
+                        {{-- زر الرفع --}}
+                        <label id="fileDropArea" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px dashed var(--border);border-radius:10px;cursor:pointer;transition:border-color .2s,background .2s;background:#fafafa">
                             <input type="file" name="attachment" id="attachmentInput" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style="display:none" onchange="onFileChange(this)">
                             <i class="fas fa-cloud-upload-alt" style="font-size:22px;color:var(--text-muted)"></i>
                             <div>
@@ -142,7 +165,7 @@
 .country-item{padding:9px 14px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s;border-bottom:1px solid #f3f4f6}
 .country-item:last-child{border-bottom:none}
 .country-item:hover{background:var(--accent,#d4a017);color:#fff}
-#fileDropArea:hover{border-color:var(--accent)}
+#fileDropArea:hover{border-color:var(--accent);background:#f0f4ff}
 </style>
 
 @push('scripts')
@@ -192,20 +215,53 @@ function showDropdown(){document.getElementById('countryDropdown').style.display
 function hideDropdown(){document.getElementById('countryDropdown').style.display='none';}
 document.addEventListener('click',e=>{if(!e.target.closest('#countrySearch')&&!e.target.closest('#countryDropdown'))hideDropdown();});
 
+// معاينة الملف بعد الاختيار
 function onFileChange(input){
-    const label=document.getElementById('fileLabel');
-    if(input.files&&input.files[0]){
-        const f=input.files[0];
-        const size=(f.size/1024/1024).toFixed(2);
-        label.innerHTML=`<i class="fas fa-file" style="color:var(--info)"></i> ${f.name} <span style="color:var(--text-muted);font-size:12px">(${size} MB)</span>`;
+    if(!input.files||!input.files[0]) return;
+    const f=input.files[0];
+    const ext=f.name.split('.').pop().toLowerCase();
+    const isImage=['jpg','jpeg','png','gif','webp'].includes(ext);
+    const isPDF=ext==='pdf';
+    const isWord=['doc','docx'].includes(ext);
+
+    // أيقونة ولون حسب النوع
+    const icon=isImage?'fa-file-image':isPDF?'fa-file-pdf':isWord?'fa-file-word':'fa-file';
+    const color=isImage?'var(--success)':isPDF?'#ef4444':isWord?'var(--info)':'var(--text-muted)';
+
+    document.getElementById('fileIconEl').className='fas '+icon;
+    document.getElementById('fileIconEl').style.color=color;
+    document.getElementById('fileNameEl').textContent=f.name;
+    document.getElementById('fileSizeEl').textContent=(f.size/1024/1024).toFixed(2)+' MB';
+
+    // عرض الصورة لو كانت صورة
+    const imgWrap=document.getElementById('imgPreviewWrap');
+    if(isImage){
+        const reader=new FileReader();
+        reader.onload=e=>{
+            document.getElementById('imgPreviewEl').src=e.target.result;
+            imgWrap.style.display='block';
+        };
+        reader.readAsDataURL(f);
     } else {
-        label.textContent='اضغط لاختيار ملف أو اسحبه هنا';
+        imgWrap.style.display='none';
+        document.getElementById('imgPreviewEl').src='';
     }
+
+    document.getElementById('filePreview').style.display='block';
+    document.getElementById('fileDropArea').style.display='none';
+}
+
+function removeFile(){
+    const input=document.getElementById('attachmentInput');
+    input.value='';
+    document.getElementById('filePreview').style.display='none';
+    document.getElementById('imgPreviewEl').src='';
+    document.getElementById('imgPreviewWrap').style.display='none';
+    document.getElementById('fileDropArea').style.display='flex';
 }
 
 const colors={none:'#94a3b8',existing:'var(--info)',create:'var(--success)'};
 
-// phone2 مستثنى — يبقى قابل للتعديل دائماً
 function lockFields(lock){
     ['f-name','f-phone','f-company'].forEach(id=>{
         const el=document.getElementById(id);if(el)el.readOnly=lock;
@@ -216,7 +272,6 @@ function lockFields(lock){
 function fillFromUser(data){
     const nameEl=document.getElementById('f-name');
     if(nameEl&&data.name)nameEl.value=data.name;
-
     const hasAgentData=data.phone||data.country||data.company;
     if(hasAgentData){
         if(data.phone)  document.getElementById('f-phone').value=data.phone;
@@ -229,7 +284,6 @@ function fillFromUser(data){
     }
 }
 
-// phone2 مستثنى — لا يُمسح ولا يُقفل
 function clearAutoFill(){
     ['f-name','f-phone','f-company'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('countryValue').value='';
