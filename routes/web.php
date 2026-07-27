@@ -61,6 +61,7 @@ Route::prefix('agent')->name('agent.')->middleware('agent')->group(function () {
     Route::get('dashboard',     [AgentDashboard::class, 'index'])->name('dashboard');
     Route::get('transactions',  [AgentDashboard::class, 'transactions'])->name('transactions');
     Route::get('notifications', [AgentDashboard::class, 'notifications'])->name('notifications');
+    Route::post('notifications/read-all', [AgentDashboard::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('reports',       [AgentDashboard::class, 'reports'])->name('reports');
     Route::post('logout',       [LoginController::class, 'logout'])->name('logout');
 });
