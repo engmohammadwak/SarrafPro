@@ -25,11 +25,9 @@
 
                 <div>
                     <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted)">Username</label>
-                    <div style="position:relative">
-                        <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:15px">&#64;</span>
-                        <input type="text" name="username" value="{{ old('username') }}" placeholder="agent_name"
-                            style="width:100%;padding:10px 14px;padding-right:32px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;direction:ltr;box-sizing:border-box">
-                    </div>
+                    <input type="text" name="username" value="{{ old('username') }}" placeholder="agent_name"
+                        style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;direction:ltr;box-sizing:border-box"
+                        autocomplete="off">
                 </div>
 
                 <div>
