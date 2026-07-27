@@ -261,24 +261,35 @@ function lockFields(lock) {
         const el = document.getElementById(id);
         if (el) el.readOnly = lock;
     });
-    // حقل الدولة مخصص
     const cs = document.getElementById('countrySearch');
     if (cs) cs.readOnly = lock;
 }
 
 function fillFromUser(data) {
-    // ملء جميع بيانات المندوب من السجل المرتبط
-    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-    set('f-name',    data.name);
-    set('f-phone',   data.phone);
-    set('f-company', data.company);
-    set('f-notes',   data.notes);
-    // الدولة
-    if (data.country) {
-        document.getElementById('countryValue').value  = data.country;
-        document.getElementById('countrySearch').value = data.country;
+    // ملء الاسم دائماً من بيانات User
+    const nameEl = document.getElementById('f-name');
+    if (nameEl && data.name) nameEl.value = data.name;
+
+    // ملء بقية الحقول فقط إذا وجدت بيانات agent
+    const hasAgentData = data.phone || data.country || data.company || data.notes;
+
+    if (hasAgentData) {
+        // وجد بيانات مندوب → ملء الكل وقفل
+        if (data.phone)   { const el = document.getElementById('f-phone');   if (el) el.value = data.phone;   }
+        if (data.company) { const el = document.getElementById('f-company'); if (el) el.value = data.company; }
+        if (data.notes)   { const el = document.getElementById('f-notes');   if (el) el.value = data.notes;   }
+        if (data.country) {
+            document.getElementById('countryValue').value  = data.country;
+            document.getElementById('countrySearch').value = data.country;
+        }
+        lockFields(true);
+    } else {
+        // المستخدم موجود لكن بدون بيانات مندوب → الاسم مُملأ، الباقي مفتوح للإدخال
+        lockFields(false);
+        // فقط الاسم readonly لأنه جاء من User
+        const nameEl2 = document.getElementById('f-name');
+        if (nameEl2) nameEl2.readOnly = true;
     }
-    lockFields(true);
 }
 
 function clearAutoFill() {
@@ -328,7 +339,7 @@ function checkUser() {
             const hasAgent = data.phone || data.country || data.company;
             const agentInfo = hasAgent
                 ? `<div style="font-size:12px;color:var(--success);margin-top:3px">✓ تم ملء البيانات تلقائياً — يمكنك تعديلها</div>`
-                : `<div style="font-size:12px;color:var(--text-muted);margin-top:3px">تم ملء الاسم — أكمل باقي البيانات</div>`;
+                : `<div style="font-size:12px;color:var(--text-muted);margin-top:3px">✏️ تم ملء الاسم — أكمل رقم الهاتف والدولة والشركة</div>`;
 
             box.innerHTML = `
                 <div style="padding:12px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:10px">
