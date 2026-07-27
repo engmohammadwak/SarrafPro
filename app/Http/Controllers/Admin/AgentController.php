@@ -31,6 +31,18 @@ class AgentController extends Controller {
         ]);
     }
 
+    /** التحقق أن المستخدم مؤهل للربط كمندوب */
+    private function validateAgentUser(User $user): ?string
+    {
+        if ($user->status !== 'active')
+            return 'هذا الحساب موقوف، لا يمكن الربط به';
+
+        if (!in_array($user->role, ['agent', 'cooperation']))
+            return 'لا يمكن ربط هذا الحساب كمندوب لأنه (' . $user->role . '). يجب أن يكون دور الحساب مندوباً';
+
+        return null;
+    }
+
     public function index() {
         $agents = Agent::where('shop_id', $this->shopId())->with('user')->latest()->paginate(20);
         return view('admin.agents.index', compact('agents'));
@@ -50,8 +62,9 @@ class AgentController extends Controller {
         if (!$user)
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
 
-        if ($user->status !== 'active')
-            return response()->json(['found' => false, 'message' => 'هذا الحساب موقوف، لا يمكن الربط به']);
+        $error = $this->validateAgentUser($user);
+        if ($error)
+            return response()->json(['found' => false, 'message' => $error]);
 
         $agent = Agent::where('user_id', $user->id)->first();
         return response()->json([
@@ -85,8 +98,12 @@ class AgentController extends Controller {
 
         if ($request->link_type === 'existing' && $request->user_id) {
             $linkedUser = User::find($request->user_id);
-            if (!$linkedUser || $linkedUser->status !== 'active')
-                return back()->withErrors(['user_id' => 'هذا الحساب موقوف، لا يمكن الربط به.'])->withInput();
+            if (!$linkedUser)
+                return back()->withErrors(['user_id' => 'الحساب غير موجود.'])->withInput();
+
+            $error = $this->validateAgentUser($linkedUser);
+            if ($error)
+                return back()->withErrors(['user_id' => $error])->withInput();
         }
 
         $attachmentPath = null;
@@ -153,18 +170,16 @@ class AgentController extends Controller {
             'attachment'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ];
 
-        // إذا المندوب بدون حساب نضيف قواعد الربط
         if (!$agent->user_id) {
-            $rules['link_type']    = 'nullable|in:none,existing,create';
+            $rules['link_type']      = 'nullable|in:none,existing,create';
             $rules['assign_user_id'] = 'nullable|exists:users,id';
-            $rules['new_email']    = 'nullable|email|unique:users,email';
-            $rules['new_password'] = 'nullable|min:8';
+            $rules['new_email']      = 'nullable|email|unique:users,email';
+            $rules['new_password']   = 'nullable|min:8';
         }
 
         $v = $request->validate($rules);
         $v['is_active'] = $request->boolean('is_active');
 
-        // معالجة المرفق
         if ($request->hasFile('attachment')) {
             if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
             $v['attachment'] = $request->file('attachment')->store('agents/attachments', 'public');
@@ -174,20 +189,22 @@ class AgentController extends Controller {
             $v['attachment'] = null;
         }
 
-        // ===== معالجة ربط الحساب (فقط لو user_id فاضي) =====
         $linkType = $request->input('link_type', 'none');
 
         if (!$agent->user_id && $linkType === 'existing') {
             $assignId   = $request->input('assign_user_id');
             $targetUser = $assignId ? User::find($assignId) : null;
 
-            if (!$targetUser || $targetUser->status !== 'active')
-                return back()->withErrors(['assign_user_id' => 'الحساب المختار غير صالح أو موقوف.'])->withInput();
+            if (!$targetUser)
+                return back()->withErrors(['assign_user_id' => 'الحساب غير موجود.'])->withInput();
+
+            $error = $this->validateAgentUser($targetUser);
+            if ($error)
+                return back()->withErrors(['assign_user_id' => $error])->withInput();
 
             $v['user_id']     = $targetUser->id;
             $v['link_status'] = 'pending';
 
-            // إشعار المندوب بطلب الربط
             $this->sendNotification($targetUser, 'warning', 'طلب ربط جديد',
                 'محل "' . $this->shopName() . '" يطلب ربطك كمندوب. بانتظار موافقتك.',
                 route('agent.dashboard'));
