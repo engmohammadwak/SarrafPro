@@ -256,22 +256,37 @@ document.addEventListener('click', e => {
 /* ============ ربط بحساب ============ */
 const colors = { none:'#94a3b8', existing:'var(--info)', create:'var(--success)' };
 
-// فقط حقل الاسم يتملأ تلقائياً لأن باقي الحقول (phone, country, company)
-// هي بيانات المندوب وليست موجودة في نموذج User
 function lockFields(lock) {
-    const el = document.getElementById('f-name');
-    if (el) el.readOnly = lock;
+    ['f-name','f-phone','f-company','f-notes'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.readOnly = lock;
+    });
+    // حقل الدولة مخصص
+    const cs = document.getElementById('countrySearch');
+    if (cs) cs.readOnly = lock;
 }
 
 function fillFromUser(data) {
-    const nameEl = document.getElementById('f-name');
-    if (nameEl && data.name) nameEl.value = data.name;
+    // ملء جميع بيانات المندوب من السجل المرتبط
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('f-name',    data.name);
+    set('f-phone',   data.phone);
+    set('f-company', data.company);
+    set('f-notes',   data.notes);
+    // الدولة
+    if (data.country) {
+        document.getElementById('countryValue').value  = data.country;
+        document.getElementById('countrySearch').value = data.country;
+    }
     lockFields(true);
 }
 
 function clearAutoFill() {
-    const nameEl = document.getElementById('f-name');
-    if (nameEl) nameEl.value = '';
+    ['f-name','f-phone','f-company','f-notes'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('countryValue').value  = '';
+    document.getElementById('countrySearch').value = '';
     lockFields(false);
 }
 
@@ -309,6 +324,12 @@ function checkUser() {
         if (data.found) {
             document.getElementById('userId').value = data.user_id;
             fillFromUser(data);
+
+            const hasAgent = data.phone || data.country || data.company;
+            const agentInfo = hasAgent
+                ? `<div style="font-size:12px;color:var(--success);margin-top:3px">✓ تم ملء البيانات تلقائياً — يمكنك تعديلها</div>`
+                : `<div style="font-size:12px;color:var(--text-muted);margin-top:3px">تم ملء الاسم — أكمل باقي البيانات</div>`;
+
             box.innerHTML = `
                 <div style="padding:12px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:10px">
                     <div style="display:flex;align-items:center;gap:10px">
@@ -316,7 +337,7 @@ function checkUser() {
                         <div>
                             <div style="font-weight:700;font-size:15px">${data.name}</div>
                             <div style="font-size:12px;color:var(--text-muted)">${data.username ?? ''} &bull; ${data.email}</div>
-                            <div style="font-size:12px;color:var(--success);margin-top:2px">✓ تم ملء اسم المندوب تلقائياً &mdash; أكمل باقي البيانات الإضافية</div>
+                            ${agentInfo}
                         </div>
                     </div>
                     <button type="button" onclick="resetUser()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px" title="تغيير">
