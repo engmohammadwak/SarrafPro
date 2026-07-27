@@ -61,7 +61,7 @@
                             <div style="width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent-light));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--primary);">{{ mb_substr($shop->creator->name,0,1) }}</div>
                             <div>
                                 <p style="font-weight:600;font-size:14px;">{{ $shop->creator->name }}</p>
-                                @if($shop->creator->username)<p style="font-size:12px;color:var(--text-muted);">&#64;{{ $shop->creator->username }}</p>@endif
+                                @if($shop->creator->username)<p style="font-size:12px;color:var(--text-muted);">{{ $shop->creator->username }}</p>@endif
                             </div>
                         </div>
                     @else
@@ -130,7 +130,7 @@
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">اسم المستخدم (Username)</p>
                     @if($shop->admin->username)
-                        <span style="background:#f3f4f6;padding:3px 12px;border-radius:8px;font-family:monospace;font-size:14px;font-weight:700;">&#64;{{ $shop->admin->username }}</span>
+                        <span style="background:#f3f4f6;padding:3px 12px;border-radius:8px;font-family:monospace;font-size:14px;font-weight:700;">{{ $shop->admin->username }}</span>
                     @else
                         <span style="color:#d1d5db;">—</span>
                     @endif
