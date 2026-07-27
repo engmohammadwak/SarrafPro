@@ -30,7 +30,7 @@
         .sidebar-menu a { display: flex; align-items: center; gap: 12px; padding: 12px 24px; color: rgba(255,255,255,0.65); text-decoration: none; font-size: 14.5px; font-weight: 500; transition: all 0.2s; border-right: 3px solid transparent; }
         .sidebar-menu a:hover, .sidebar-menu a.active { background: rgba(201,168,76,0.1); color: var(--accent); border-right-color: var(--accent); }
         .sidebar-menu a i { width: 20px; text-align: center; font-size: 16px; }
-        .sidebar-menu a .badge-count { margin-right: auto; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; }
+        .sidebar-menu a .badge-count { margin-right: auto; background: var(--danger); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 20px; min-width: 20px; text-align: center; }
         .sidebar-footer { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.07); }
 
         /* ===== MAIN ===== */
@@ -38,11 +38,94 @@
         .topbar { background: #fff; padding: 0 28px; height: 68px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 10px rgba(0,0,0,0.06); position: sticky; top: 0; z-index: 100; }
         .topbar-left { display: flex; align-items: center; gap: 16px; }
         .topbar-left h1 { font-size: 20px; font-weight: 700; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
         .topbar-badge { background: linear-gradient(135deg, var(--primary), #2d3561); color: #fff; padding: 8px 18px; border-radius: 50px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .topbar-badge .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         .btn-toggle-sidebar { display: none; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-dark); }
         .page-content { padding: 28px; flex: 1; }
+
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-wrap { position: relative; }
+        .notif-btn {
+            width: 42px; height: 42px; border-radius: 12px;
+            background: #f4f6fb; border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: var(--text-dark);
+            cursor: pointer; transition: all 0.2s; position: relative;
+        }
+        .notif-btn:hover { background: #eef0f7; }
+        .notif-btn .notif-dot {
+            position: absolute; top: 7px; left: 7px;
+            width: 9px; height: 9px; border-radius: 50%;
+            background: var(--danger); border: 2px solid #fff;
+            display: none;
+        }
+        .notif-btn .notif-dot.show { display: block; }
+        .notif-badge {
+            position: absolute; top: -5px; left: -5px;
+            background: var(--danger); color: #fff;
+            font-size: 10px; font-weight: 700;
+            width: 18px; height: 18px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #fff;
+        }
+
+        /* Dropdown */
+        .notif-dropdown {
+            position: absolute; top: calc(100% + 10px); left: 0;
+            width: 340px; background: #fff;
+            border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.14);
+            border: 1px solid var(--border);
+            display: none; flex-direction: column;
+            overflow: hidden; z-index: 200;
+        }
+        .notif-dropdown.open { display: flex; }
+        .notif-dd-head {
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .notif-dd-head h4 { font-size: 14px; font-weight: 700; }
+        .notif-dd-head a { font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 600; }
+        .notif-dd-head a:hover { text-decoration: underline; }
+        .notif-list { max-height: 320px; overflow-y: auto; }
+        .notif-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 14px 18px;
+            border-bottom: 1px solid #f3f4f6;
+            transition: background 0.15s; cursor: pointer;
+            text-decoration: none; color: inherit;
+        }
+        .notif-item:hover { background: #fafbff; }
+        .notif-item.unread { background: #fffdf4; }
+        .notif-item.unread:hover { background: #fff9e6; }
+        .notif-icon {
+            width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 15px;
+        }
+        .notif-icon.info    { background: rgba(59,130,246,0.12);  color: var(--info); }
+        .notif-icon.success { background: rgba(16,185,129,0.12);  color: var(--success); }
+        .notif-icon.warning { background: rgba(245,158,11,0.12);  color: var(--warning); }
+        .notif-icon.danger  { background: rgba(239,68,68,0.12);   color: var(--danger); }
+        .notif-icon.gold    { background: rgba(201,168,76,0.12);  color: var(--accent); }
+        .notif-body { flex: 1; min-width: 0; }
+        .notif-body p { font-size: 13px; font-weight: 600; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .notif-body span { font-size: 11px; color: var(--text-muted); margin-top: 2px; display: block; }
+        .notif-unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 6px; }
+        .notif-dd-foot {
+            padding: 12px 18px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        .notif-dd-foot a {
+            font-size: 13px; font-weight: 600; color: var(--primary);
+            text-decoration: none;
+        }
+        .notif-dd-foot a:hover { color: var(--accent); }
+        .notif-empty { padding: 40px 20px; text-align: center; color: var(--text-muted); }
+        .notif-empty i { font-size: 32px; opacity: .25; display: block; margin-bottom: 8px; }
+        .notif-empty p { font-size: 13px; }
 
         /* ===== CARDS ===== */
         .card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
@@ -85,11 +168,20 @@
             .sidebar { transform: translateX(100%); } .sidebar.open { transform: translateX(0); }
             .sidebar-overlay.show { display: block; } .main-content { margin-right: 0; }
             .page-content { padding: 16px; } .btn-toggle-sidebar { display: block; }
+            .notif-dropdown { width: 300px; }
         }
     </style>
     @stack('styles')
 </head>
 <body>
+@php
+    $agentNotifications = auth()->user()
+        ->notifications()
+        ->latest()
+        ->take(5)
+        ->get();
+    $unreadCount = auth()->user()->unreadNotifications()->count();
+@endphp
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
@@ -112,6 +204,9 @@
         </a>
         <a href="{{ route('agent.notifications') }}" class="{{ request()->routeIs('agent.notifications') ? 'active' : '' }}">
             <i class="fas fa-bell"></i> الإشعارات
+            @if($unreadCount > 0)
+                <span class="badge-count">{{ $unreadCount > 99 ? '99+' : $unreadCount }}</span>
+            @endif
         </a>
 
         <div class="menu-section-title">التحليل</div>
@@ -138,10 +233,68 @@
             <button class="btn-toggle-sidebar" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
             <h1>@yield('page-title', 'لوحة التحكم')</h1>
         </div>
-        <div class="topbar-badge">
-            <div class="dot"></div>
-            <i class="fas fa-user-tie"></i>
-            {{ auth()->user()->name }}
+        <div class="topbar-right">
+            {{-- Bell Button --}}
+            <div class="notif-wrap" id="notifWrap">
+                <button class="notif-btn" id="notifBtn" onclick="toggleNotif(event)" title="الإشعارات">
+                    <i class="fas fa-bell"></i>
+                    @if($unreadCount > 0)
+                        <span class="notif-badge">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
+                    @endif
+                </button>
+
+                <div class="notif-dropdown" id="notifDropdown">
+                    <div class="notif-dd-head">
+                        <h4><i class="fas fa-bell" style="color:var(--accent);margin-left:6px"></i> الإشعارات
+                            @if($unreadCount > 0)
+                                <span style="font-size:11px;color:var(--danger);font-weight:600;margin-right:6px">({{ $unreadCount }} جديد)</span>
+                            @endif
+                        </h4>
+                        @if($unreadCount > 0)
+                            <a href="{{ route('agent.notifications.read-all') }}" onclick="event.preventDefault();markAllRead()">تعيين الكل كمقروء</a>
+                        @endif
+                    </div>
+
+                    <div class="notif-list">
+                        @forelse($agentNotifications as $notif)
+                        @php
+                            $data = $notif->data;
+                            $typeMap = ['info'=>'info','success'=>'success','warning'=>'warning','danger'=>'danger','gold'=>'gold'];
+                            $iconMap = ['info'=>'fa-info-circle','success'=>'fa-check-circle','warning'=>'fa-exclamation-triangle','danger'=>'fa-times-circle','gold'=>'fa-star'];
+                            $t    = $typeMap[$data['type'] ?? 'info']  ?? 'info';
+                            $icon = $iconMap[$data['type'] ?? 'info']  ?? 'fa-bell';
+                        @endphp
+                        <a href="{{ $data['url'] ?? route('agent.notifications') }}" class="notif-item {{ $notif->read_at ? '' : 'unread' }}">
+                            <div class="notif-icon {{ $t }}"><i class="fas {{ $icon }}"></i></div>
+                            <div class="notif-body">
+                                <p>{{ $data['title'] ?? $data['message'] ?? 'إشعار جديد' }}</p>
+                                <span>{{ $notif->created_at->diffForHumans() }}</span>
+                            </div>
+                            @if(!$notif->read_at)
+                                <div class="notif-unread-dot"></div>
+                            @endif
+                        </a>
+                        @empty
+                        <div class="notif-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>لا توجد إشعارات حتى الآن</p>
+                        </div>
+                        @endforelse
+                    </div>
+
+                    @if($agentNotifications->count() > 0)
+                    <div class="notif-dd-foot">
+                        <a href="{{ route('agent.notifications') }}">عرض جميع الإشعارات</a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <div class="topbar-badge">
+                <div class="dot"></div>
+                <i class="fas fa-user-tie"></i>
+                {{ auth()->user()->name }}
+            </div>
         </div>
     </header>
 
@@ -164,6 +317,31 @@
 function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+function toggleNotif(e) {
+    e.stopPropagation();
+    document.getElementById('notifDropdown').classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('notifWrap');
+    if (wrap && !wrap.contains(e.target)) {
+        document.getElementById('notifDropdown').classList.remove('open');
+    }
+});
+
+function markAllRead() {
+    fetch('{{ route("agent.notifications.read-all") }}', {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+    }).then(() => {
+        // إزالة نقاط غير المقروء
+        document.querySelectorAll('.notif-item.unread').forEach(el => el.classList.remove('unread'));
+        document.querySelectorAll('.notif-unread-dot').forEach(el => el.remove());
+        document.querySelector('.notif-badge')?.remove();
+        document.querySelector('.badge-count')?.remove();
+    });
 }
 </script>
 @stack('scripts')
