@@ -31,7 +31,6 @@ class AgentController extends Controller {
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
         }
 
-        // الحساب الموقوف يُعامل كأنه غير موجود
         if ($user->status !== 'active') {
             return response()->json(['found' => false, 'message' => 'هذا الحساب موقوف، لا يمكن الربط به']);
         }
@@ -68,7 +67,6 @@ class AgentController extends Controller {
             'new_password'=> 'nullable|min:8',
         ]);
 
-        // تحقق إضافي: لو اختار حساب موجود وكان موقوفاً
         if ($request->link_type === 'existing' && $request->user_id) {
             $linkedUser = User::find($request->user_id);
             if (!$linkedUser || $linkedUser->status !== 'active') {
@@ -144,9 +142,17 @@ class AgentController extends Controller {
             'attachment'  => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
 
+        // is_active: checkbox — لو محدد يبعث 1، لو لا فارغ أي false
+        $v['is_active'] = $request->boolean('is_active');
+
         if ($request->hasFile('attachment')) {
             if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
             $v['attachment'] = $request->file('attachment')->store('agents/attachments', 'public');
+        }
+
+        if ($request->input('delete_attachment') === '1' && $agent->attachment) {
+            Storage::disk('public')->delete($agent->attachment);
+            $v['attachment'] = null;
         }
 
         $agent->update($v);
@@ -155,7 +161,6 @@ class AgentController extends Controller {
 
     public function destroy(Agent $agent) {
         abort_if($agent->shop_id !== $this->shopId(), 403);
-        // Soft delete — لا يُحذف حساب المستخدم ولا الملف
         $agent->delete();
         return back()->with('success', 'تم حذف المندوب.');
     }
