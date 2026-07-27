@@ -29,14 +29,6 @@
                     <p style="font-weight:600;">{{ $shop->name_en ?? '-' }}</p>
                 </div>
                 <div>
-                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">Username</p>
-                    @if($shop->username)
-                        <span style="background:#f3f4f6;padding:3px 12px;border-radius:8px;font-family:monospace;font-size:14px;font-weight:700">&#64;{{ $shop->username }}</span>
-                    @else
-                        <span style="color:#d1d5db">—</span>
-                    @endif
-                </div>
-                <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">رقم الترخيص</p>
                     <p style="font-weight:600;">{{ $shop->license_number ?? '-' }}</p>
                 </div>
@@ -131,14 +123,10 @@
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">اسم المدير</p>
                     <p style="font-weight:600;">{{ $shop->admin->name }}</p>
                 </div>
-
-                {{-- Email --}}
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">البريد الإلكتروني</p>
                     <p style="font-weight:600;">{{ $shop->admin->email }}</p>
                 </div>
-
-                {{-- Username — جنب البريد الإلكتروني --}}
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">اسم المستخدم (Username)</p>
                     @if($shop->admin->username)
@@ -147,7 +135,6 @@
                         <span style="color:#d1d5db;">—</span>
                     @endif
                 </div>
-
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">رابط الدخول</p>
                     <a href="{{ url('/admin/login') }}" target="_blank" style="color:var(--accent);font-weight:600;font-size:13px;">
