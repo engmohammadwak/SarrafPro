@@ -33,8 +33,8 @@
                         </td>
                         <td>{{ $shop->admin->name ?? 'غير محدد' }}</td>
                         <td>
-                            @if($shop->username)
-                                <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151;">{{ $shop->username }}</span>
+                            @if($shop->admin?->username)
+                                <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151;">{{ $shop->admin->username }}</span>
                             @else
                                 <span style="color:#d1d5db;">-</span>
                             @endif
