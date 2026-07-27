@@ -57,9 +57,13 @@
                 {{-- حالة الربط --}}
                 <td>
                     @if($a->link_status === 'approved')
-                        <span class="badge badge-success"><i class="fas fa-check"></i> موافق عليه</span>
+                        <span class="badge badge-success"><i class="fas fa-check"></i> مرتبط</span>
                     @elseif($a->link_status === 'pending')
-                        <span class="badge badge-warning"><i class="fas fa-clock"></i> بانتظار</span>
+                        <span class="badge badge-warning"><i class="fas fa-clock"></i> بانتظار الموافقة</span>
+                    @elseif($a->link_status === 'unlink_pending')
+                        <span class="badge" style="background:rgba(245,158,11,0.15);color:#b45309;">
+                            <i class="fas fa-hourglass-half"></i> بانتظار تسوية الرصيد
+                        </span>
                     @elseif($a->link_status === 'rejected')
                         <span class="badge badge-danger"><i class="fas fa-times"></i> مرفوض</span>
                     @else
@@ -69,7 +73,7 @@
 
                 {{-- حالة التوقيف --}}
                 <td>
-                    @if($a->link_status === 'approved')
+                    @if(in_array($a->link_status, ['approved', 'unlink_pending']))
                         @if($a->is_active)
                             <span class="badge badge-success"><i class="fas fa-circle" style="font-size:8px"></i> نشط</span>
                         @else
@@ -82,15 +86,19 @@
 
                 {{-- رصيدي --}}
                 <td>
-                    <span style="font-weight:700;font-size:15px;color:var(--accent)">
+                    <span style="font-weight:700;font-size:15px;color:{{ ($a->balance ?? 0) != 0 ? '#ef4444' : 'var(--accent)' }}">
                         {{ number_format($a->balance ?? 0, 2) }}
                     </span>
+                    @if(($a->balance ?? 0) != 0)
+                        <br><span style="font-size:10px;color:#ef4444"><i class="fas fa-exclamation-circle"></i> رصيد معلق</span>
+                    @endif
                 </td>
 
                 {{-- الإجراءات --}}
                 <td>
                     <div style="display:flex;gap:6px;flex-wrap:wrap">
-                        {{-- عرض التفاصيل --}}
+
+                        {{-- عرض التفاصيل دائماً --}}
                         <a href="{{ route('agent.shops.show', $a->id) }}"
                            style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#f4f6fb;border:1px solid #e5e7eb;border-radius:8px;font-size:12px;font-weight:600;color:var(--text-dark);text-decoration:none;transition:all .2s"
                            onmouseover="this.style.background='#eef0f7'" onmouseout="this.style.background='#f4f6fb'">
@@ -98,6 +106,7 @@
                         </a>
 
                         @if($a->link_status === 'approved')
+
                             {{-- توقيف / تفعيل --}}
                             @if($a->is_active)
                             <form method="POST" action="{{ route('agent.shops.block', $a->id) }}" style="display:inline" onsubmit="return confirm('هل تريد توقيف هذا المحل؟')">
@@ -118,7 +127,8 @@
                             @endif
 
                             {{-- فك الربط --}}
-                            <form method="POST" action="{{ route('agent.shops.unlink', $a->id) }}" style="display:inline" onsubmit="return confirm('هل أنت متأكد من طلب فك الربط؟')">
+                            <form method="POST" action="{{ route('agent.shops.unlink', $a->id) }}" style="display:inline"
+                                  onsubmit="return confirmUnlink(event, {{ ($a->balance ?? 0) != 0 ? 'true' : 'false' }}, '{{ number_format($a->balance ?? 0, 2) }}')">
                                 @csrf @method('PATCH')
                                 <button type="submit" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#fee2e2;border:1px solid #ef444444;border-radius:8px;font-size:12px;font-weight:600;color:#991b1b;cursor:pointer;transition:all .2s;font-family:Tajawal,sans-serif"
                                     onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
@@ -126,8 +136,13 @@
                                 </button>
                             </form>
 
+                        @elseif($a->link_status === 'unlink_pending')
+                            {{-- في انتظار تسوية الرصيد --}}
+                            <span style="font-size:11px;color:#b45309;background:#fef3c7;padding:5px 10px;border-radius:8px;border:1px solid #fcd34d44;display:inline-flex;align-items:center;gap:5px">
+                                <i class="fas fa-hourglass-half"></i> بانتظار تسوية الرصيد
+                            </span>
+
                         @elseif($a->link_status === 'pending')
-                            {{-- قبول الطلب --}}
                             <form method="POST" action="{{ route('agent.agents.approve', $a->id) }}" style="display:inline">
                                 @csrf @method('PATCH')
                                 <button type="submit" style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:#d1fae5;border:1px solid #10b98144;border-radius:8px;font-size:12px;font-weight:600;color:#065f46;cursor:pointer;transition:all .2s;font-family:Tajawal,sans-serif">
@@ -141,6 +156,7 @@
                                 </button>
                             </form>
                         @endif
+
                     </div>
                 </td>
             </tr>
@@ -150,4 +166,22 @@
     </div>
     @endif
 </div>
+
+@push('scripts')
+<script>
+function confirmUnlink(e, hasBalance, balance) {
+    if (hasBalance) {
+        e.preventDefault();
+        const ok = confirm(
+            'تنبيه: لديك رصيد معلق بقيمة ' + balance + '\n\n' +
+            'لن يتم فك الارتباط نهائياً حتى يقوم الأدمن بتسوية الرصيد.\n' +
+            'هل تريد تقديم طلب فك الارتباط؟'
+        );
+        if (ok) e.target.submit();
+        return false;
+    }
+    return confirm('هل أنت متأكد من طلب فك الارتباط؟');
+}
+</script>
+@endpush
 @endsection

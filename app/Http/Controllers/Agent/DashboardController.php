@@ -8,7 +8,6 @@ use Illuminate\Notifications\DatabaseNotification;
 
 class DashboardController extends Controller
 {
-    /** سجلات المندوب الحالي */
     private function agentRecords()
     {
         return Agent::with('shop')
@@ -16,7 +15,6 @@ class DashboardController extends Controller
             ->get();
     }
 
-    /** تحقق ملكية السجل للمندوب الحالي */
     private function ownAgent(int $id): Agent
     {
         $agent = Agent::with('shop')->findOrFail($id);
@@ -75,15 +73,30 @@ class DashboardController extends Controller
         return back()->with('success', 'تم تفعيل المحل بنجاح.');
     }
 
+    /**
+     * طلب فك الارتباط:
+     * - لو الرصيد = 0  → نفصل فوراً (user_id = null, link_status = rejected)
+     * - لو الرصيد != 0 → نضع link_status = unlink_pending وتبقى البيانات كاملة
+     *   حتى يتم تسوية الرصيد من قِبل الأدمن
+     */
     public function shopUnlink(int $id)
     {
         $agent = $this->ownAgent($id);
+        abort_if(!in_array($agent->link_status, ['approved', 'unlink_pending']), 403);
+
+        if (!empty($agent->balance) && $agent->balance != 0) {
+            // في رصيد → لا نحذف user_id، فقط نعلّم بانتظار التسوية
+            $agent->update(['link_status' => 'unlink_pending']);
+            return back()->with('success', 'تم تقديم طلب فك الارتباط. سيبقى السجل محفوظاً حتى تسوية الرصيد ('. number_format($agent->balance, 2) .').');
+        }
+
+        // رصيد صفر → فك فوري
         $agent->update(['link_status' => 'rejected', 'user_id' => null]);
-        return redirect()->route('agent.shops.index')->with('success', 'تم طلب فك الربط بنجاح.');
+        return redirect()->route('agent.shops.index')->with('success', 'تم فك الارتباط بنجاح.');
     }
 
     // ================================================================
-    // LINK REQUESTS (popup)
+    // LINK REQUESTS
     // ================================================================
     public function approveLink(Agent $agent)
     {
