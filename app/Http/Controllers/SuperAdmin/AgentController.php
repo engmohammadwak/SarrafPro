@@ -28,12 +28,10 @@ class AgentController extends Controller {
             'notes'      => 'nullable|string|max:1000',
             'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
-
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->store('agents/attachments','public');
         }
-
         User::create([
             'name'       => $data['name'],
             'username'   => $data['username'] ?? null,
@@ -45,26 +43,37 @@ class AgentController extends Controller {
             'attachment' => $attachmentPath,
             'created_by' => auth()->id(),
         ]);
-
         return redirect()->route('superadmin.agents.index')->with('success', 'تمّ إضافة المندوب بنجاح');
     }
 
     public function show(User $agent) {
         $agent->load('creator','updater');
 
-        // جلب سجل المندوب من جدول agents
-        $agentRecord = Agent::where('user_id', $agent->id)->first();
+        // جميع سجلات المندوب (لكل محل مربوط بيه)
+        $agentRecords = Agent::with(['shop', 'user'])
+            ->where('user_id', $agent->id)
+            ->get();
 
-        // جلب الحسابات المفعلة مع الرصيد لكل عملة
-        $balances = $agentRecord
-            ? Account::where('agent_id', $agentRecord->id)
-                     ->where('is_active', true)
-                     ->select('currency','balance','name','type')
-                     ->orderBy('currency')
-                     ->get()
-            : collect();
+        // لكل سجل مندوب: جلب حساباته المفعلة مع رصيدها
+        $agentIds = $agentRecords->pluck('id');
+        $accountsByAgent = Account::whereIn('agent_id', $agentIds)
+            ->where('is_active', true)
+            ->select('agent_id','currency','balance','name','type')
+            ->orderBy('currency')
+            ->get()
+            ->groupBy('agent_id');
 
-        return view('superadmin.agents.show', compact('agent', 'agentRecord', 'balances'));
+        // أرصدة المندوب الإجمالية (multi-currency) عبر جميع المحلات
+        $allBalances = Account::whereIn('agent_id', $agentIds)
+            ->where('is_active', true)
+            ->select('currency', \Illuminate\Support\Facades\DB::raw('SUM(balance) as total'), 'type')
+            ->groupBy('currency','type')
+            ->orderBy('currency')
+            ->get();
+
+        return view('superadmin.agents.show', compact(
+            'agent', 'agentRecords', 'accountsByAgent', 'allBalances'
+        ));
     }
 
     public function edit(User $agent) {
@@ -80,15 +89,12 @@ class AgentController extends Controller {
             'notes'      => 'nullable|string|max:1000',
             'attachment' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
-
         if ($request->hasFile('attachment')) {
             if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
             $data['attachment'] = $request->file('attachment')->store('agents/attachments','public');
         }
-
         if (empty($data['password'])) unset($data['password']);
         else $data['password'] = bcrypt($data['password']);
-
         $data['updated_by'] = auth()->id();
         $agent->update($data);
         return redirect()->route('superadmin.agents.show', $agent)->with('success', 'تمّ تحديث بيانات المندوب');
