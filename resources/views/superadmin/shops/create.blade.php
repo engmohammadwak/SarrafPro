@@ -36,16 +36,6 @@
                     </div>
 
                     <div>
-                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">Username</label>
-                        <div style="position:relative">
-                            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:15px;">&#64;</span>
-                            <input type="text" name="username" value="{{ old('username') }}" placeholder="shop_username"
-                                style="width:100%;padding:10px 14px;padding-right:32px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;direction:ltr;color:var(--text-dark);box-sizing:border-box">
-                        </div>
-                        <p style="font-size:12px;color:var(--text-muted);margin-top:4px">اختياري — حروف وأرقام وشرطة سفلية فقط</p>
-                    </div>
-
-                    <div>
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">رقم الترخيص</label>
                         <input type="text" name="license_number" value="{{ old('license_number') }}"
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--text-dark);box-sizing:border-box">
@@ -72,8 +62,6 @@
                     {{-- منطقة رفع الملف مع بريفيو للصور --}}
                     <div style="grid-column:1/-1">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">ملف مرفق <span style="font-size:12px;color:var(--text-muted);font-weight:400">(اختياري — PDF, صورة, Word)</span></label>
-
-                        {{-- زر الرفع --}}
                         <div id="uploadZone"
                              style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;background:#fafbfc;cursor:pointer;transition:border-color .2s"
                              onclick="document.getElementById('shopAttachment').click()"
@@ -87,21 +75,13 @@
                                    style="display:none"
                                    onchange="handleFile(this.files[0])">
                         </div>
-
-                        {{-- بريفيو الصورة --}}
-                        <div id="imgPreviewWrap" style="display:none;margin-top:12px;position:relative;display:none">
-                            <img id="imgPreview"
-                                 src=""
-                                 alt="معاينة مسبقة"
+                        <div id="imgPreviewWrap" style="display:none;margin-top:12px;position:relative;">
+                            <img id="imgPreview" src="" alt="معاينة مسبقة"
                                  style="max-width:100%;max-height:300px;border-radius:10px;border:1px solid var(--border);display:block">
                             <button type="button" onclick="clearFile()"
-                                    style="position:absolute;top:8px;left:8px;background:rgba(239,68,68,.85);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
-                                &times;
-                            </button>
+                                    style="position:absolute;top:8px;left:8px;background:rgba(239,68,68,.85);color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
                         </div>
-
-                        {{-- بريفيو ملف غير صورة --}}
-                        <div id="filePreviewWrap" style="display:none;margin-top:12px;background:#f8f9fc;border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:none;align-items:center;gap:12px">
+                        <div id="filePreviewWrap" style="display:none;margin-top:12px;background:#f8f9fc;border:1px solid var(--border);border-radius:10px;padding:12px 16px;align-items:center;gap:12px">
                             <i class="fas fa-file-alt" style="font-size:24px;color:var(--accent)"></i>
                             <div style="flex:1">
                                 <p id="fileName" style="font-weight:600;font-size:14px;margin:0"></p>
@@ -112,7 +92,6 @@
                                 <i class="fas fa-times"></i> حذف
                             </button>
                         </div>
-
                     </div>
 
                     <div style="grid-column:1/-1">
@@ -143,6 +122,19 @@
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">إيميل المدير <span style="color:#ef4444;">*</span></label>
                         <input type="email" name="admin_email" value="{{ old('admin_email') }}" required
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--text-dark);box-sizing:border-box">
+                    </div>
+
+                    {{-- Username — تحت الإيميل مباشرة --}}
+                    <div style="grid-column:1/-1">
+                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">Username <span style="color:#ef4444;">*</span></label>
+                        <div style="position:relative">
+                            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:15px;">&#64;</span>
+                            <input type="text" name="username" value="{{ old('username') }}" required
+                                placeholder="shop_username"
+                                style="width:100%;padding:10px 14px;padding-right:32px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;direction:ltr;color:var(--text-dark);box-sizing:border-box"
+                                autocomplete="off">
+                        </div>
+                        <p style="font-size:12px;color:var(--text-muted);margin-top:4px">حروف وأرقام وشرطة سفلية فقط — يُستخدم لتسجيل دخول مدير المحل</p>
                     </div>
 
                     <div style="grid-column:1/-1">
