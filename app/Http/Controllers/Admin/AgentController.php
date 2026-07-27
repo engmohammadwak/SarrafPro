@@ -12,12 +12,19 @@ class AgentController extends Controller {
     private function shopId()   { return auth()->user()->shop_id; }
     private function shopName() { return auth()->user()->shop->name ?? 'المحل'; }
 
+    // أدوار تعني شراكة ليس مندوباً
+    private const PARTNER_ROLES = ['shop_admin', 'super_admin', 'admin'];
+
+    private function resolveType(User $user): string {
+        return in_array($user->role, self::PARTNER_ROLES) ? 'partner' : 'agent';
+    }
+
     private function sendNotification(User $user, string $type, string $title, string $message, string $url = ''): void
     {
         if (!$url) {
             $url = match($user->role) {
                 'super_admin'         => route('superadmin.dashboard'),
-                'agent','cooperation' => route('agent.dashboard'),
+                'agent','cooperation','partner' => route('agent.dashboard'),
                 default               => route('admin.agents.index'),
             };
         }
@@ -38,22 +45,6 @@ class AgentController extends Controller {
         ]);
     }
 
-    /** تحقق من صلاحية الربط حسب النوع */
-    private function validateUserForLink(User $user, string $agentType): ?string
-    {
-        if ($user->status !== 'active')
-            return 'هذا الحساب موقوف، لا يمكن الربط به';
-
-        // الشراكة: أي مستخدم مقبول (حتى shop_admin)
-        if ($agentType === 'partner') return null;
-
-        // مندوب عادي: يجب أن يكون agent أو cooperation
-        if (!in_array($user->role, ['agent', 'cooperation']))
-            return 'لا يمكن ربط هذا الحساب كمندوب لأنه (' . $user->role . '). اختر نوع "شراكة" إذا أردت ربط صاحب محل أو موظف';
-
-        return null;
-    }
-
     public function index() {
         $agents = Agent::where('shop_id', $this->shopId())->with('user')->latest()->paginate(20);
         return view('admin.agents.index', compact('agents'));
@@ -61,38 +52,30 @@ class AgentController extends Controller {
 
     public function create() { return view('admin.agents.create'); }
 
+    /** فحص المستخدم - يقبل أي دور (النوع يتحدد تلقائياً) */
     public function checkUser(Request $request) {
-        $request->validate([
-            'username'   => 'required|string',
-            'agent_type' => 'nullable|string|in:agent,partner',
-        ]);
-        $search    = trim($request->username);
-        $agentType = $request->agent_type ?? 'agent';
+        $request->validate(['username' => 'required|string']);
+        $search = trim($request->username);
 
         $user = User::where(function($q) use ($search) {
-                    $q->where('username', $search)
-                      ->orWhere('email',    $search)
-                      ->orWhere('name',     $search);
-                })->first();
+            $q->where('username', $search)
+              ->orWhere('email',   $search)
+              ->orWhere('name',    $search);
+        })->first();
 
         if (!$user)
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
 
-        $error = $this->validateUserForLink($user, $agentType);
-        if ($error)
-            return response()->json(['found' => false, 'message' => $error]);
+        if ($user->status !== 'active')
+            return response()->json(['found' => false, 'message' => 'هذا الحساب موقوف']);
 
-        $agent = Agent::where('user_id', $user->id)->where('shop_id', $this->shopId())->first();
         return response()->json([
             'found'    => true,
             'user_id'  => $user->id,
-            'name'     => $agent?->name    ?? $user->name,
-            'username' => $user->username  ?? $user->name,
+            'role'     => $user->role,         // الدور يرجع للواجهة
+            'name'     => $user->name,
+            'username' => $user->username ?? $user->name,
             'email'    => $user->email,
-            'phone'    => $agent?->phone   ?? $user->phone   ?? null,
-            'phone2'   => $agent?->phone2  ?? null,
-            'country'  => $agent?->country ?? $user->country ?? null,
-            'company'  => $agent?->company ?? $user->company ?? null,
         ]);
     }
 
@@ -107,30 +90,26 @@ class AgentController extends Controller {
             'admin_notes'  => 'nullable|string',
             'attachment'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'link_type'    => 'required|in:none,existing,create',
-            'agent_type'   => 'nullable|in:agent,partner',
             'user_id'      => 'nullable|exists:users,id',
             'new_email'    => 'nullable|email|unique:users,email',
             'new_password' => 'nullable|min:8',
         ]);
 
-        $agentType = $request->agent_type ?? 'agent';
-
-        if ($request->link_type === 'existing' && $request->user_id) {
-            $linkedUser = User::find($request->user_id);
-            if (!$linkedUser)
-                return back()->withErrors(['user_id' => 'الحساب غير موجود.'])->withInput();
-            $error = $this->validateUserForLink($linkedUser, $agentType);
-            if ($error)
-                return back()->withErrors(['user_id' => $error])->withInput();
-        }
-
         $attachmentPath = null;
         if ($request->hasFile('attachment'))
             $attachmentPath = $request->file('attachment')->store('agents/attachments', 'public');
 
-        $userId = null; $linkStatus = 'none';
+        $userId = null; $linkStatus = 'none'; $agentType = 'agent';
+
         if ($request->link_type === 'existing' && $request->user_id) {
-            $userId = $request->user_id; $linkStatus = 'pending';
+            $linkedUser = User::findOrFail($request->user_id);
+            if ($linkedUser->status !== 'active')
+                return back()->withErrors(['user_id' => 'هذا الحساب موقوف.'])->withInput();
+
+            $agentType  = $this->resolveType($linkedUser); // تحديد تلقائي
+            $userId     = $linkedUser->id;
+            $linkStatus = 'pending';
+
         } elseif ($request->link_type === 'create' && $request->new_email && $request->new_password) {
             $newUser = User::create([
                 'name'     => $request->name,
@@ -139,7 +118,9 @@ class AgentController extends Controller {
                 'role'     => 'agent',
                 'status'   => 'active',
             ]);
-            $userId = $newUser->id; $linkStatus = 'approved';
+            $userId     = $newUser->id;
+            $linkStatus = 'approved';
+            $agentType  = 'agent';
         }
 
         Agent::create([
@@ -162,9 +143,9 @@ class AgentController extends Controller {
         if ($linkStatus === 'pending' && $userId) {
             $targetUser = User::find($userId);
             if ($targetUser) {
-                $typeLabel = $agentType === 'partner' ? 'شريك' : 'مندوب';
+                $typeLabel = $agentType === 'partner' ? 'شريكاً' : 'مندوباً';
                 $this->sendNotification($targetUser, 'warning', 'طلب ربط جديد',
-                    'محل "' . $this->shopName() . '" يطلب ربطك ك' . $typeLabel . '. بانتظار موافقتك.');
+                    'محل "' . $this->shopName() . '" يطلب ربطك ' . $typeLabel . '. بانتظار موافقتك.');
             }
         }
 
@@ -189,7 +170,6 @@ class AgentController extends Controller {
             'admin_notes'  => 'nullable|string',
             'attachment'   => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ];
-
         if (!$agent->user_id) {
             $rules['link_type']      = 'nullable|in:none,existing,create';
             $rules['assign_user_id'] = 'nullable|exists:users,id';
@@ -209,34 +189,30 @@ class AgentController extends Controller {
             $v['attachment'] = null;
         }
 
-        $linkType  = $request->input('link_type', 'none');
-        $agentType = $agent->type ?? 'agent';
+        $linkType = $request->input('link_type', 'none');
 
         if (!$agent->user_id && $linkType === 'existing') {
             $assignId   = $request->input('assign_user_id');
             $targetUser = $assignId ? User::find($assignId) : null;
-
             if (!$targetUser)
                 return back()->withErrors(['assign_user_id' => 'الحساب غير موجود.'])->withInput();
+            if ($targetUser->status !== 'active')
+                return back()->withErrors(['assign_user_id' => 'هذا الحساب موقوف.'])->withInput();
 
-            $error = $this->validateUserForLink($targetUser, $agentType);
-            if ($error)
-                return back()->withErrors(['assign_user_id' => $error])->withInput();
-
+            $resolvedType = $this->resolveType($targetUser);
             $v['user_id']     = $targetUser->id;
             $v['link_status'] = 'pending';
+            $v['type']        = $resolvedType;
 
-            $typeLabel = $agentType === 'partner' ? 'شريك' : 'مندوب';
+            $typeLabel = $resolvedType === 'partner' ? 'شريكاً' : 'مندوباً';
             $this->sendNotification($targetUser, 'warning', 'طلب ربط جديد',
-                'محل "' . $this->shopName() . '" يطلب ربطك ك' . $typeLabel . '. بانتظار موافقتك.');
+                'محل "' . $this->shopName() . '" يطلب ربطك ' . $typeLabel . '. بانتظار موافقتك.');
 
         } elseif (!$agent->user_id && $linkType === 'create') {
             $newEmail    = $request->input('new_email');
             $newPassword = $request->input('new_password');
-
             if (!$newEmail || !$newPassword)
                 return back()->withErrors(['new_email' => 'يرجى إدخال الإيميل وكلمة المرور.'])->withInput();
-
             $newUser = User::create([
                 'name'     => $agent->name,
                 'email'    => $newEmail,
@@ -246,6 +222,7 @@ class AgentController extends Controller {
             ]);
             $v['user_id']     = $newUser->id;
             $v['link_status'] = 'approved';
+            $v['type']        = 'agent';
         }
 
         unset($v['link_type'], $v['assign_user_id'], $v['new_email'], $v['new_password']);
@@ -271,7 +248,7 @@ class AgentController extends Controller {
         $targetUser = User::find($agent->user_id);
         if ($targetUser)
             $this->sendNotification($targetUser, 'danger', 'تم رفض طلب الربط',
-                'للأسف، تم رفض طلب ربطك مع محل "' . $this->shopName() . '". يمكنك إعادة المحاولة.');
+                'للأسف، تم رفض طلب ربطك مع محل "' . $this->shopName() . '".');
         $agent->update(['link_status' => 'rejected', 'user_id' => null]);
         return back()->with('success', 'تم رفض طلب الربط.');
     }
