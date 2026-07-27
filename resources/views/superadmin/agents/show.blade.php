@@ -12,10 +12,12 @@
     </div>
     <div class="card-body">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px">
+
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">الاسم الكامل</p>
                 <p style="font-weight:700;font-size:16px">{{ $agent->name }}</p>
             </div>
+
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">Username</p>
                 @if($agent->username)
@@ -24,10 +26,13 @@
                     <span style="color:#d1d5db">غير محدد</span>
                 @endif
             </div>
+
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">البريد الإلكتروني</p>
                 <p style="font-weight:600">{{ $agent->email }}</p>
             </div>
+
+            {{-- أضافه --}}
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">أضيفه</p>
                 @if($agent->creator)
@@ -42,9 +47,35 @@
                     <span style="color:#d1d5db">غير محدد</span>
                 @endif
             </div>
+
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">تاريخ الإضافة</p>
                 <p style="font-weight:600">{{ $agent->created_at->format('Y-m-d H:i') }}</p>
+            </div>
+
+            {{-- آخر تحديث --}}
+            <div>
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">آخر تحديث</p>
+                @if($agent->updated_by)
+                    <p style="font-weight:600;font-size:14px">{{ $agent->updated_at->format('Y-m-d H:i') }}</p>
+                @else
+                    <span style="color:#d1d5db">—</span>
+                @endif
+            </div>
+
+            <div>
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">عدّله</p>
+                @if($agent->updater)
+                    <div style="display:flex;align-items:center;gap:8px">
+                        <div style="width:30px;height:30px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff">{{ mb_substr($agent->updater->name,0,1) }}</div>
+                        <div>
+                            <p style="font-weight:600;font-size:14px">{{ $agent->updater->name }}</p>
+                            @if($agent->updater->username)<p style="font-size:12px;color:var(--text-muted)">{{ $agent->updater->username }}</p>@endif
+                        </div>
+                    </div>
+                @else
+                    <span style="color:#d1d5db">—</span>
+                @endif
             </div>
 
             @if($agent->notes)
@@ -65,10 +96,8 @@
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:10px">ملف مرفق</p>
 
                 @if($isImage)
-                {{-- معاينة الصورة --}}
                 <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;display:inline-block;max-width:100%;margin-bottom:12px">
-                    <img src="{{ Storage::url($agent->attachment) }}"
-                         alt="ملف مرفق"
+                    <img src="{{ Storage::url($agent->attachment) }}" alt="ملف مرفق"
                          style="max-width:100%;max-height:400px;display:block;cursor:pointer"
                          onclick="window.open(this.src,'_blank')">
                 </div>
@@ -87,11 +116,9 @@
                 </div>
 
                 @elseif($isPdf)
-                {{-- معاينة PDF --}}
                 <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px">
                     <iframe src="{{ Storage::url($agent->attachment) }}"
-                            style="width:100%;height:480px;border:none;display:block"
-                            title="ملف PDF"></iframe>
+                            style="width:100%;height:480px;border:none;display:block" title="PDF"></iframe>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                     <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
@@ -107,7 +134,6 @@
                 </div>
 
                 @else
-                {{-- ملف آخر (Word إلخ) --}}
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
                     <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
                         <i class="fas fa-file-download"></i> تحميل الملف

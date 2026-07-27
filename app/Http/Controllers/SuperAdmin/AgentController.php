@@ -47,7 +47,7 @@ class AgentController extends Controller {
     }
 
     public function show(User $agent) {
-        $agent->load('creator');
+        $agent->load('creator','updater');
         return view('superadmin.agents.show', compact('agent'));
     }
 
@@ -73,6 +73,8 @@ class AgentController extends Controller {
         if (empty($data['password'])) unset($data['password']);
         else $data['password'] = bcrypt($data['password']);
 
+        $data['updated_by'] = auth()->id();
+
         $agent->update($data);
         return redirect()->route('superadmin.agents.show', $agent)->with('success', 'تمّ تحديث بيانات المندوب');
     }
@@ -86,7 +88,7 @@ class AgentController extends Controller {
     public function deleteAttachment(User $agent) {
         if ($agent->attachment) {
             Storage::disk('public')->delete($agent->attachment);
-            $agent->update(['attachment' => null]);
+            $agent->update(['attachment' => null, 'updated_by' => auth()->id()]);
         }
         return back()->with('success', 'تمّ حذف الملف بنجاح');
     }
