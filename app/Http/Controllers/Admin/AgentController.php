@@ -5,9 +5,32 @@ use App\Models\Agent;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\Support\Str;
 
 class AgentController extends Controller {
     private function shopId() { return auth()->user()->shop_id; }
+    private function shopName() { return auth()->user()->shop->name ?? 'المحل'; }
+
+    /** إرسال إشعار قاعدة بيانات مباشرة دون Notification class */
+    private function sendNotification(User $user, string $type, string $title, string $message, string $url = ''): void
+    {
+        DatabaseNotification::create([
+            'id'              => (string) Str::uuid(),
+            'type'            => 'App\\Notifications\\AgentLinkNotification',
+            'notifiable_type' => User::class,
+            'notifiable_id'   => $user->id,
+            'data'            => json_encode([
+                'type'    => $type,
+                'title'   => $title,
+                'message' => $message,
+                'url'     => $url ?: route('agent.dashboard'),
+            ]),
+            'read_at'   => null,
+            'created_at'=> now(),
+            'updated_at'=> now(),
+        ]);
+    }
 
     public function index() {
         $agents = Agent::where('shop_id', $this->shopId())->with('user')->latest()->paginate(20);
@@ -109,17 +132,57 @@ class AgentController extends Controller {
             'is_active'   => true,
         ]);
 
+        // إشعار المندوب بطلب الربط الجديد
+        if ($linkStatus === 'pending' && $userId) {
+            $targetUser = User::find($userId);
+            if ($targetUser) {
+                $this->sendNotification(
+                    $targetUser,
+                    'warning',
+                    'طلب ربط جديد',
+                    'محل \"' . $this->shopName() . '\" يطلب ربطك كمندوب. بانتظار موافقتك.',
+                    route('agent.dashboard')
+                );
+            }
+        }
+
         return redirect()->route('admin.agents.index')->with('success', 'تم إضافة المندوب.');
     }
 
     public function approveLink(Agent $agent) {
         abort_if($agent->user_id !== auth()->id(), 403);
         $agent->update(['link_status' => 'approved']);
+
+        // إشعار بالموافقة
+        $targetUser = User::find($agent->user_id);
+        if ($targetUser) {
+            $this->sendNotification(
+                $targetUser,
+                'success',
+                'تمت موافقتك',
+                'لقد وافقت على طلب الربط مع محل \"' . $this->shopName() . '\". أهلاً بك!',
+                route('agent.dashboard')
+            );
+        }
+
         return back()->with('success', 'تم قبول طلب الربط.');
     }
 
     public function rejectLink(Agent $agent) {
         abort_if($agent->user_id !== auth()->id(), 403);
+
+        // إشعار قبل حذف الربط
+        $targetUser = User::find($agent->user_id);
+        if ($targetUser) {
+            $this->sendNotification(
+                $targetUser,
+                'danger',
+                'تم رفض طلب الربط',
+                'للأسف، تم رفض طلب ربطك مع محل \"' . $this->shopName() . '\".',
+                route('agent.dashboard')
+            );
+        }
+
         $agent->update(['link_status' => 'rejected', 'user_id' => null]);
         return back()->with('success', 'تم رفض طلب الربط.');
     }
@@ -142,7 +205,6 @@ class AgentController extends Controller {
             'attachment'  => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
 
-        // is_active: checkbox — لو محدد يبعث 1، لو لا فارغ أي false
         $v['is_active'] = $request->boolean('is_active');
 
         if ($request->hasFile('attachment')) {
