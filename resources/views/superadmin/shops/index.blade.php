@@ -18,7 +18,7 @@
                         <th>#</th>
                         <th>اسم المحل</th>
                         <th>المدير</th>
-                        <th>المدينة</th>
+                        <th>Username</th>
                         <th>الهاتف</th>
                         <th>الحالة</th>
                         <th>الإجراءات</th>
@@ -32,7 +32,13 @@
                             <div style="font-weight:600;">{{ $shop->name }}</div>
                         </td>
                         <td>{{ $shop->admin->name ?? 'غير محدد' }}</td>
-                        <td>{{ $shop->city ?? '-' }}</td>
+                        <td>
+                            @if($shop->username)
+                                <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151;">{{ $shop->username }}</span>
+                            @else
+                                <span style="color:#d1d5db;">-</span>
+                            @endif
+                        </td>
                         <td>{{ $shop->phone ?? '-' }}</td>
                         <td>
                             @if($shop->status === 'active')
