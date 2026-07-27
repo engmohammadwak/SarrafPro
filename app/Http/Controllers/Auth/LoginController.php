@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,16 +14,20 @@ class LoginController extends Controller {
 
     public function login(Request $request) {
         $request->validate([
-            'email'    => 'required|email',
+            'login'    => 'required|string',
             'password' => 'required',
         ], [
-            'email.required'    => 'البريد الإلكتروني مطلوب',
-            'email.email'       => 'بريد إلكتروني غير صحيح',
+            'login.required'    => 'البريد أو اسم المستخدم مطلوب',
             'password.required' => 'كلمة المرور مطلوبة',
         ]);
 
-        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->remember)) {
-            return back()->withErrors(['email' => 'البريد أو كلمة المرور غير صحيحة'])->withInput();
+        $loginValue = $request->login;
+
+        // تحديد طريقة التحقق: إيميل أو username
+        $field = filter_var($loginValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        if (!Auth::attempt([$field => $loginValue, 'password' => $request->password], $request->remember)) {
+            return back()->withErrors(['login' => 'بيانات الدخول غير صحيحة'])->withInput();
         }
 
         $request->session()->regenerate();

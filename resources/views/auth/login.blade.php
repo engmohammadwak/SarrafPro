@@ -24,6 +24,7 @@ input:focus{outline:none;border-color:#c9a84c;background:#fff;box-shadow:0 0 0 3
 .error{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);color:#dc2626;padding:12px 16px;border-radius:10px;margin-bottom:20px;font-size:14px}
 .remember{display:flex;align-items:center;gap:8px;font-size:13px;color:#6b7280;margin-bottom:20px;cursor:pointer}
 .remember input{width:auto;margin:0;padding:0}
+.hint{font-size:12px;color:#9ca3af;margin-top:-12px;margin-bottom:16px;padding-right:4px}
 </style>
 </head>
 <body>
@@ -40,16 +41,18 @@ input:focus{outline:none;border-color:#c9a84c;background:#fff;box-shadow:0 0 0 3
 
     <form method="POST" action="{{ route('login.post') }}">
         @csrf
-        <label>البريد الإلكتروني</label>
+        <label>البريد الإلكتروني أو اسم المستخدم</label>
         <div class="input-wrap">
-            <i class="fas fa-envelope"></i>
-            <input type="email" name="email" value="{{ old('email') }}" required autofocus placeholder="example@email.com">
+            <i class="fas fa-user"></i>
+            <input type="text" name="login" value="{{ old('login') }}" required autofocus
+                placeholder="example@email.com أو username" autocomplete="username">
         </div>
+        <p class="hint"><i class="fas fa-info-circle"></i> يمكنك الدخول بالبريد الإلكتروني أو باسم المستخدم</p>
 
         <label>كلمة المرور</label>
         <div class="input-wrap">
             <i class="fas fa-lock"></i>
-            <input type="password" name="password" required placeholder="••••••••">
+            <input type="password" name="password" required placeholder="••••••••" autocomplete="current-password">
         </div>
 
         <label class="remember">
