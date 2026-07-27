@@ -96,7 +96,6 @@
                 <div style="grid-column:1/-1">
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:10px;">ملف مرفق</p>
                     @if($isImage)
-                        {{-- عرض الصورة مباشرةً --}}
                         <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;display:inline-block;max-width:100%;">
                             <img src="{{ Storage::url($shop->attachment) }}"
                                  alt="ملف مرفق"
@@ -109,7 +108,6 @@
                             </a>
                         </div>
                     @else
-                        {{-- ملف PDF / Word — زر تحميل --}}
                         <a href="{{ Storage::url($shop->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
                             <i class="fas fa-file-download"></i> تحميل الملف
                         </a>
@@ -133,10 +131,23 @@
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">اسم المدير</p>
                     <p style="font-weight:600;">{{ $shop->admin->name }}</p>
                 </div>
+
+                {{-- Email --}}
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">البريد الإلكتروني</p>
                     <p style="font-weight:600;">{{ $shop->admin->email }}</p>
                 </div>
+
+                {{-- Username — جنب البريد الإلكتروني --}}
+                <div>
+                    <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">اسم المستخدم (Username)</p>
+                    @if($shop->admin->username)
+                        <span style="background:#f3f4f6;padding:3px 12px;border-radius:8px;font-family:monospace;font-size:14px;font-weight:700;">&#64;{{ $shop->admin->username }}</span>
+                    @else
+                        <span style="color:#d1d5db;">—</span>
+                    @endif
+                </div>
+
                 <div>
                     <p style="color:var(--text-muted);font-size:13px;margin-bottom:4px;">رابط الدخول</p>
                     <a href="{{ url('/admin/login') }}" target="_blank" style="color:var(--accent);font-weight:600;font-size:13px;">
