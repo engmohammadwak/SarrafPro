@@ -14,6 +14,15 @@ class AgentController extends Controller {
 
     private function sendNotification(User $user, string $type, string $title, string $message, string $url = ''): void
     {
+        // تحديد الرابط الصحيح حسب دور المستخدم المستهدف
+        if (!$url) {
+            $url = match($user->role) {
+                'super_admin'         => route('superadmin.dashboard'),
+                'agent','cooperation' => route('agent.dashboard'),
+                default               => route('admin.agents.index'),
+            };
+        }
+
         DatabaseNotification::create([
             'id'              => (string) Str::uuid(),
             'type'            => 'App\\Notifications\\AgentLinkNotification',
@@ -23,7 +32,7 @@ class AgentController extends Controller {
                 'type'    => $type,
                 'title'   => $title,
                 'message' => $message,
-                'url'     => $url ?: route('agent.dashboard'),
+                'url'     => $url,
             ]),
             'read_at'    => null,
             'created_at' => now(),
@@ -31,15 +40,12 @@ class AgentController extends Controller {
         ]);
     }
 
-    /** التحقق أن المستخدم مؤهل للربط كمندوب */
     private function validateAgentUser(User $user): ?string
     {
         if ($user->status !== 'active')
             return 'هذا الحساب موقوف، لا يمكن الربط به';
-
         if (!in_array($user->role, ['agent', 'cooperation']))
             return 'لا يمكن ربط هذا الحساب كمندوب لأنه (' . $user->role . '). يجب أن يكون دور الحساب مندوباً';
-
         return null;
     }
 
@@ -100,7 +106,6 @@ class AgentController extends Controller {
             $linkedUser = User::find($request->user_id);
             if (!$linkedUser)
                 return back()->withErrors(['user_id' => 'الحساب غير موجود.'])->withInput();
-
             $error = $this->validateAgentUser($linkedUser);
             if ($error)
                 return back()->withErrors(['user_id' => $error])->withInput();
@@ -144,8 +149,7 @@ class AgentController extends Controller {
             $targetUser = User::find($userId);
             if ($targetUser)
                 $this->sendNotification($targetUser, 'warning', 'طلب ربط جديد',
-                    'محل "' . $this->shopName() . '" يطلب ربطك كمندوب. بانتظار موافقتك.',
-                    route('agent.dashboard'));
+                    'محل "' . $this->shopName() . '" يطلب ربطك كمندوب. بانتظار موافقتك.');
         }
 
         return redirect()->route('admin.agents.index')->with('success', 'تم إضافة المندوب.');
@@ -206,8 +210,7 @@ class AgentController extends Controller {
             $v['link_status'] = 'pending';
 
             $this->sendNotification($targetUser, 'warning', 'طلب ربط جديد',
-                'محل "' . $this->shopName() . '" يطلب ربطك كمندوب. بانتظار موافقتك.',
-                route('agent.dashboard'));
+                'محل "' . $this->shopName() . '" يطلب ربطك كمندوب. بانتظار موافقتك.');
 
         } elseif (!$agent->user_id && $linkType === 'create') {
             $newEmail    = $request->input('new_email');
@@ -240,8 +243,7 @@ class AgentController extends Controller {
         $targetUser = User::find($agent->user_id);
         if ($targetUser)
             $this->sendNotification($targetUser, 'success', 'تمت موافقتك',
-                'لقد وافقت على طلب الربط مع محل "' . $this->shopName() . '". أهلاً بك!',
-                route('agent.dashboard'));
+                'لقد وافق محل "' . $this->shopName() . '" على طلب الربط. أهلاً بك!');
         return back()->with('success', 'تم قبول طلب الربط.');
     }
 
@@ -250,8 +252,7 @@ class AgentController extends Controller {
         $targetUser = User::find($agent->user_id);
         if ($targetUser)
             $this->sendNotification($targetUser, 'danger', 'تم رفض طلب الربط',
-                'للأسف، تم رفض طلب ربطك مع محل "' . $this->shopName() . '".',
-                route('agent.dashboard'));
+                'للأسف، تم رفض طلب ربطك مع محل "' . $this->shopName() . '". يمكنك إعادة إرسال طلب جديد.');
         $agent->update(['link_status' => 'rejected', 'user_id' => null]);
         return back()->with('success', 'تم رفض طلب الربط.');
     }
