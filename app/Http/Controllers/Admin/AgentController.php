@@ -15,7 +15,6 @@ class AgentController extends Controller {
 
     public function create() { return view('admin.agents.create'); }
 
-    // AJAX: التحقق من وجود المستخدم + جلب بيانات المندوب المرتبط به إن وجد
     public function checkUser(Request $request) {
         $request->validate(['username' => 'required|string']);
         $search = trim($request->username);
@@ -29,27 +28,21 @@ class AgentController extends Controller {
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
         }
 
-        // 1) نبحث عن agent مرتبط بهذا الـ user_id
+        // جلب بيانات agent مرتبط بهذا الـ user_id (إن وجد)
         $agent = Agent::where('user_id', $user->id)->first();
 
-        // 2) إن لم نجد، نبحث بـ username أو name في جدول agents
-        //    (حالة المندوب أُضيف يدوياً بدون ربط حساب)
-        if (!$agent) {
-            $agent = Agent::where('name', $user->name)
-                          ->orWhere('name', $user->username)
-                          ->first();
-        }
-
+        // الأولوية: بيانات agent ثم بيانات User كاحتياط
+        // (في super-admin البيانات تُخزَّن مباشرةً في جدول users)
         return response()->json([
             'found'    => true,
             'user_id'  => $user->id,
-            'name'     => $agent?->name ?? $user->name,
+            'name'     => $agent?->name    ?? $user->name,
             'username' => $user->username,
             'email'    => $user->email,
-            'phone'    => $agent?->phone,
-            'country'  => $agent?->country,
-            'company'  => $agent?->company,
-            'notes'    => $agent?->notes,
+            'phone'    => $agent?->phone   ?? $user->phone,
+            'country'  => $agent?->country ?? $user->country,
+            'company'  => $agent?->company ?? $user->company,
+            'notes'    => $agent?->notes   ?? $user->notes,
         ]);
     }
 
