@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Agent;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AgentController extends Controller {
     private function shopId() { return auth()->user()->shop_id; }
@@ -28,11 +29,8 @@ class AgentController extends Controller {
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
         }
 
-        // جلب بيانات agent مرتبط بهذا الـ user_id (إن وجد)
         $agent = Agent::where('user_id', $user->id)->first();
 
-        // الأولوية: بيانات agent ثم بيانات User كاحتياط
-        // (في super-admin البيانات تُخزَّن مباشرةً في جدول users)
         return response()->json([
             'found'    => true,
             'user_id'  => $user->id,
@@ -40,6 +38,7 @@ class AgentController extends Controller {
             'username' => $user->username,
             'email'    => $user->email,
             'phone'    => $agent?->phone   ?? $user->phone,
+            'phone2'   => $agent?->phone2  ?? null,
             'country'  => $agent?->country ?? $user->country,
             'company'  => $agent?->company ?? $user->company,
             'notes'    => $agent?->notes   ?? $user->notes,
@@ -50,21 +49,26 @@ class AgentController extends Controller {
         $v = $request->validate([
             'name'        => 'required|string|max:255',
             'phone'       => 'nullable|string|max:30',
+            'phone2'      => 'nullable|string|max:30',
             'country'     => 'nullable|string|max:100',
             'company'     => 'nullable|string|max:255',
             'notes'       => 'nullable|string',
+            'admin_notes' => 'nullable|string',
+            'attachment'  => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
             'link_type'   => 'required|in:none,existing,create',
             'user_id'     => 'nullable|exists:users,id',
             'new_email'   => 'nullable|email|unique:users,email',
             'new_password'=> 'nullable|min:8',
         ]);
 
-        $userId     = null;
-        $linkStatus = 'none';
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('agents/attachments', 'public');
+        }
 
+        $userId = null; $linkStatus = 'none';
         if ($request->link_type === 'existing' && $request->user_id) {
-            $userId     = $request->user_id;
-            $linkStatus = 'pending';
+            $userId = $request->user_id; $linkStatus = 'pending';
         } elseif ($request->link_type === 'create' && $request->new_email && $request->new_password) {
             $newUser = User::create([
                 'name'     => $request->name,
@@ -72,8 +76,7 @@ class AgentController extends Controller {
                 'password' => bcrypt($request->new_password),
                 'role'     => 'agent',
             ]);
-            $userId     = $newUser->id;
-            $linkStatus = 'approved';
+            $userId = $newUser->id; $linkStatus = 'approved';
         }
 
         Agent::create([
@@ -81,10 +84,13 @@ class AgentController extends Controller {
             'user_id'     => $userId,
             'link_status' => $linkStatus,
             'name'        => $v['name'],
-            'phone'       => $v['phone'] ?? null,
-            'country'     => $v['country'] ?? null,
-            'company'     => $v['company'] ?? null,
-            'notes'       => $v['notes'] ?? null,
+            'phone'       => $v['phone']       ?? null,
+            'phone2'      => $v['phone2']      ?? null,
+            'country'     => $v['country']     ?? null,
+            'company'     => $v['company']     ?? null,
+            'notes'       => $v['notes']       ?? null,
+            'admin_notes' => $v['admin_notes'] ?? null,
+            'attachment'  => $attachmentPath,
             'balance'     => 0,
             'is_active'   => true,
         ]);
@@ -112,18 +118,28 @@ class AgentController extends Controller {
     public function update(Request $request, Agent $agent) {
         abort_if($agent->shop_id !== $this->shopId(), 403);
         $v = $request->validate([
-            'name'    => 'required|string|max:255',
-            'phone'   => 'nullable|string|max:30',
-            'country' => 'nullable|string|max:100',
-            'company' => 'nullable|string|max:255',
-            'notes'   => 'nullable|string',
+            'name'        => 'required|string|max:255',
+            'phone'       => 'nullable|string|max:30',
+            'phone2'      => 'nullable|string|max:30',
+            'country'     => 'nullable|string|max:100',
+            'company'     => 'nullable|string|max:255',
+            'notes'       => 'nullable|string',
+            'admin_notes' => 'nullable|string',
+            'attachment'  => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
         ]);
+
+        if ($request->hasFile('attachment')) {
+            if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
+            $v['attachment'] = $request->file('attachment')->store('agents/attachments', 'public');
+        }
+
         $agent->update($v);
         return redirect()->route('admin.agents.index')->with('success', 'تم تحديث المندوب.');
     }
 
     public function destroy(Agent $agent) {
         abort_if($agent->shop_id !== $this->shopId(), 403);
+        if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
         $agent->delete();
         return back()->with('success', 'تم حذف المندوب.');
     }
