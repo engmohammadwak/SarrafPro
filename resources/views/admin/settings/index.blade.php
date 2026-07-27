@@ -4,12 +4,6 @@
 @section('content')
 <div style="max-width:640px;display:flex;flex-direction:column;gap:20px">
 
-    @if(session('success'))
-    <div style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#065f46;padding:14px;border-radius:12px">
-        <i class="fas fa-check-circle"></i> {{ session('success') }}
-    </div>
-    @endif
-
     @if($errors->any())
     <div style="background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.25);color:#dc2626;padding:14px;border-radius:12px">
         <i class="fas fa-exclamation-circle"></i>
