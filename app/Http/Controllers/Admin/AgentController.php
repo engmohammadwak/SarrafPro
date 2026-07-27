@@ -9,7 +9,7 @@ class AgentController extends Controller {
     private function shopId() { return auth()->user()->shop_id; }
 
     public function index() {
-        $agents = Agent::where('shop_id', $this->shopId())->with('user')->latest()->get();
+        $agents = Agent::where('shop_id', $this->shopId())->with('user')->latest()->paginate(20);
         return view('admin.agents.index', compact('agents'));
     }
 
@@ -40,9 +40,7 @@ class AgentController extends Controller {
             'company'     => 'nullable|string|max:255',
             'notes'       => 'nullable|string',
             'link_type'   => 'required|in:none,existing,create',
-            // لو existing
             'user_id'     => 'nullable|exists:users,id',
-            // لو create
             'new_email'   => 'nullable|email|unique:users,email',
             'new_password'=> 'nullable|min:8',
         ]);
@@ -52,7 +50,7 @@ class AgentController extends Controller {
 
         if ($request->link_type === 'existing' && $request->user_id) {
             $userId     = $request->user_id;
-            $linkStatus = 'pending'; // بانتظار موافقة صاحب الحساب
+            $linkStatus = 'pending';
         } elseif ($request->link_type === 'create' && $request->new_email && $request->new_password) {
             $newUser = User::create([
                 'name'     => $request->name,
@@ -61,7 +59,7 @@ class AgentController extends Controller {
                 'role'     => 'agent',
             ]);
             $userId     = $newUser->id;
-            $linkStatus = 'approved'; // نحن أنشأناه فوراً موافق
+            $linkStatus = 'approved';
         }
 
         Agent::create([
@@ -80,9 +78,7 @@ class AgentController extends Controller {
         return redirect()->route('admin.agents.index')->with('success', 'تم إضافة المندوب.');
     }
 
-    // موافقة أو رفض طلب الربط (يستخدمها صاحب الحساب المربوط)
     public function approveLink(Agent $agent) {
-        // فقط صاحب الحساب المربوط يقدر يوافق
         abort_if($agent->user_id !== auth()->id(), 403);
         $agent->update(['link_status' => 'approved']);
         return back()->with('success', 'تم قبول طلب الربط.');
