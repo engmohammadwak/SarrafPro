@@ -43,7 +43,6 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::resource('customers', CustomerController::class);
     Route::resource('accounts', AccountController::class);
 
-    // Agents — حدد المسارات الموجودة فقط (check-user قبل resource عشان ما يتعارض)
     Route::get('agents/check-user', [AgentController::class, 'checkUser'])->name('agents.check-user');
     Route::resource('agents', AgentController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::patch('agents/{agent}/approve-link', [AgentController::class, 'approveLink'])->name('agents.approve-link');
@@ -60,4 +59,5 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
 // Agent Routes
 Route::prefix('agent')->name('agent.')->middleware('agent')->group(function () {
     Route::get('dashboard', [AgentDashboard::class, 'index'])->name('dashboard');
+    Route::post('logout',   [LoginController::class, 'logout'])->name('logout');
 });
