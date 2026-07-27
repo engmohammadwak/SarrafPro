@@ -15,7 +15,7 @@
     </div>
     @endif
 
-    <form action="{{ route('superadmin.shops.update', $shop) }}" method="POST">
+    <form action="{{ route('superadmin.shops.update', $shop) }}" method="POST" enctype="multipart/form-data">
         @csrf
         @method('PUT')
 
@@ -37,6 +37,16 @@
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">اسم المحل (إنجليزي)</label>
                         <input type="text" name="name_en" value="{{ old('name_en', $shop->name_en) }}"
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;">
+                    </div>
+
+                    {{-- Username --}}
+                    <div style="grid-column:1/-1;">
+                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">اسم المستخدم (Username) <span style="color:#ef4444;">*</span></label>
+                        <input type="text" name="username" value="{{ old('username', $shop->username) }}"
+                            style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;" required
+                            placeholder="مثال: sarraf_muscat"
+                            autocomplete="off" dir="ltr">
+                        <p style="font-size:12px;color:var(--text-muted);margin-top:5px;">حروف وأرقام وشرطة سفلية فقط — سيتم تحديثه تلقائياً على حساب مدير المحل</p>
                     </div>
 
                     <div>
@@ -65,6 +75,12 @@
                             <option value="suspended" {{ old('status', $shop->status) === 'suspended' ? 'selected' : '' }}>موقوف</option>
                             <option value="pending"   {{ old('status', $shop->status) === 'pending'   ? 'selected' : '' }}>معلق</option>
                         </select>
+                    </div>
+
+                    <div style="grid-column:1/-1;">
+                        <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">ملاحظات</label>
+                        <textarea name="notes" rows="3"
+                            style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;resize:vertical;">{{ old('notes', $shop->notes) }}</textarea>
                     </div>
 
                 </div>
