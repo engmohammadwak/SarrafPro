@@ -3,6 +3,7 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class AgentController extends Controller {
@@ -65,7 +66,7 @@ class AgentController extends Controller {
         ]);
 
         if ($request->hasFile('attachment')) {
-            if ($agent->attachment) \Storage::disk('public')->delete($agent->attachment);
+            if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
             $data['attachment'] = $request->file('attachment')->store('agents/attachments','public');
         }
 
@@ -77,8 +78,16 @@ class AgentController extends Controller {
     }
 
     public function destroy(User $agent) {
-        if ($agent->attachment) \Storage::disk('public')->delete($agent->attachment);
+        if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
         $agent->delete();
         return redirect()->route('superadmin.agents.index')->with('success', 'تمّ حذف المندوب');
+    }
+
+    public function deleteAttachment(User $agent) {
+        if ($agent->attachment) {
+            Storage::disk('public')->delete($agent->attachment);
+            $agent->update(['attachment' => null]);
+        }
+        return back()->with('success', 'تمّ حذف الملف بنجاح');
     }
 }
