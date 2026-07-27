@@ -83,8 +83,10 @@ class ShopController extends Controller {
     }
 
     public function update(Request $request, Shop $shop) {
-        // جمع كل مستخدمي المحل (قد يكون أكثر من واحد)
+        // جمع كل مستخدمي المحل
         $shopUserIds = User::where('shop_id', $shop->id)->pluck('id')->toArray();
+
+        $adminId = $shop->admin?->id;
 
         $data = $request->validate([
             'name'           => 'required|string|max:100',
@@ -92,7 +94,6 @@ class ShopController extends Controller {
             'username'       => array_merge(
                 ['required','string','max:50','alpha_dash'],
                 [Rule::unique('shops','username')->ignore($shop->id)->withoutTrashed()],
-                // تجاهل جميع مستخدمي هذا المحل
                 !empty($shopUserIds)
                     ? [Rule::unique('users','username')->whereNotIn('id', $shopUserIds)]
                     : [Rule::unique('users','username')]
@@ -104,6 +105,15 @@ class ShopController extends Controller {
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+            // حقول المدير — إلزامية
+            'admin_name'     => 'required|string|max:100',
+            'admin_email'    => [
+                'required', 'email',
+                $adminId
+                    ? Rule::unique('users','email')->ignore($adminId)
+                    : Rule::unique('users','email'),
+            ],
+            'admin_password' => 'nullable|min:6',
         ]);
 
         if ($request->hasFile('attachment')) {
@@ -114,13 +124,28 @@ class ShopController extends Controller {
         $data['updated_by'] = auth()->id();
 
         DB::transaction(function () use ($shop, $data, $request) {
-            $shop->update($data);
+            $shop->update([
+                'name'           => $data['name'],
+                'name_en'        => $data['name_en'] ?? null,
+                'username'       => $data['username'],
+                'license_number' => $data['license_number'] ?? null,
+                'phone'          => $data['phone'] ?? null,
+                'email'          => $data['email'] ?? null,
+                'city'           => $data['city'] ?? null,
+                'notes'          => $data['notes'] ?? null,
+                'updated_by'     => $data['updated_by'],
+                'attachment'     => $data['attachment'] ?? $shop->attachment,
+            ]);
 
             if ($shop->admin) {
-                $adminData = ['username' => $data['username']];
-                if ($request->filled('admin_name'))     $adminData['name']     = $request->admin_name;
-                if ($request->filled('admin_email'))    $adminData['email']    = $request->admin_email;
-                if ($request->filled('admin_password')) $adminData['password'] = bcrypt($request->admin_password);
+                $adminData = [
+                    'name'     => $data['admin_name'],
+                    'email'    => $data['admin_email'],
+                    'username' => $data['username'],
+                ];
+                if (!empty($data['admin_password'])) {
+                    $adminData['password'] = bcrypt($data['admin_password']);
+                }
                 $shop->admin->update($adminData);
             }
         });
