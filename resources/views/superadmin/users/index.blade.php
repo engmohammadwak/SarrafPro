@@ -13,7 +13,7 @@
         <div class="table-wrapper">
             <table>
                 <thead><tr>
-                    <th>#</th><th>الاسم</th><th>Username</th><th>البريد</th><th>تاريخ التسجيل</th><th>الإجراءات</th>
+                    <th>#</th><th>الاسم</th><th>Username</th><th>تاريخ التسجيل</th><th>الإجراءات</th>
                 </tr></thead>
                 <tbody>
                 @forelse($users as $user)
@@ -32,7 +32,6 @@
                             <span style="color:#d1d5db">—</span>
                         @endif
                     </td>
-                    <td style="color:var(--text-muted)">{{ $user->email }}</td>
                     <td style="color:var(--text-muted);font-size:13px">{{ $user->created_at->format('Y-m-d') }}</td>
                     <td style="display:flex;gap:6px">
                         <a href="{{ route('superadmin.users.show', $user) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></a>
@@ -46,7 +45,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">لا يوجد مستخدمون</td></tr>
+                <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">لا يوجد مستخدمون</td></tr>
                 @endforelse
                 </tbody>
             </table>
