@@ -28,19 +28,58 @@ class NotificationController extends Controller
             ->where('notifiable_type', 'App\\Models\\User')
             ->first();
 
-        $url = route('admin.dashboard');
+        // الرابط الافتراضي حسب دور المستخدم الحالي
+        $role = auth()->user()->role;
+        $defaultUrl = match($role) {
+            'super_admin'              => route('superadmin.dashboard'),
+            'agent', 'cooperation'     => route('agent.dashboard'),
+            default                    => route('admin.dashboard'),
+        };
+
+        $url = $defaultUrl;
+
         if ($n) {
-            $data = is_array($n->data) ? $n->data : json_decode($n->data, true);
-            $url  = $data['url'] ?? $url;
+            $data        = is_array($n->data) ? $n->data : json_decode($n->data, true);
+            $storedUrl   = $data['url'] ?? null;
+
+            // تحقق: هل الرابط المحفوظ خاص بدور المستخدم الحالي
+            if ($storedUrl && $this->urlMatchesRole($storedUrl, $role)) {
+                $url = $storedUrl;
+            }
+            // إذا الرابط لدور مختلف نستخدم الرابط الافتراضي
+
             if (!$n->read_at) $n->markAsRead();
         }
+
         return redirect($url);
+    }
+
+    /**
+     * تحقق أن الرابط ينتمي لنفس مجال دور المستخدم
+     */
+    private function urlMatchesRole(string $url, string $role): bool
+    {
+        $agentPrefixes      = ['/agent/'];
+        $adminPrefixes      = ['/admin/'];
+        $superAdminPrefixes = ['/super-admin/'];
+
+        $path = parse_url($url, PHP_URL_PATH) ?? $url;
+
+        $isAgentUrl      = collect($agentPrefixes)->contains(fn($p)      => str_starts_with($path, $p));
+        $isAdminUrl      = collect($adminPrefixes)->contains(fn($p)      => str_starts_with($path, $p));
+        $isSuperAdminUrl = collect($superAdminPrefixes)->contains(fn($p) => str_starts_with($path, $p));
+
+        return match($role) {
+            'super_admin'          => $isSuperAdminUrl,
+            'agent', 'cooperation' => $isAgentUrl,
+            default                => $isAdminUrl,  // shop_admin, admin, staff
+        };
     }
 
     /** AJAX: آخر 5 إشعارات + عدد غير مقروءة */
     public function latest()
     {
-        $user  = auth()->user();
+        $user   = auth()->user();
         $unread = $user->unreadNotifications()->count();
         $items  = $user->notifications()->latest()->take(5)->get()->map(function ($n) {
             $data = is_array($n->data) ? $n->data : json_decode($n->data, true);
