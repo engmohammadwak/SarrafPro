@@ -205,8 +205,9 @@ function onFileChange(input){
 
 const colors={none:'#94a3b8',existing:'var(--info)',create:'var(--success)'};
 
+// phone2 مستثنى — يبقى قابل للتعديل دائماً
 function lockFields(lock){
-    ['f-name','f-phone','f-phone2','f-company'].forEach(id=>{
+    ['f-name','f-phone','f-company'].forEach(id=>{
         const el=document.getElementById(id);if(el)el.readOnly=lock;
     });
     const cs=document.getElementById('countrySearch');if(cs)cs.readOnly=lock;
@@ -216,10 +217,9 @@ function fillFromUser(data){
     const nameEl=document.getElementById('f-name');
     if(nameEl&&data.name)nameEl.value=data.name;
 
-    const hasAgentData=data.phone||data.phone2||data.country||data.company;
+    const hasAgentData=data.phone||data.country||data.company;
     if(hasAgentData){
         if(data.phone)  document.getElementById('f-phone').value=data.phone;
-        if(data.phone2) document.getElementById('f-phone2').value=data.phone2;
         if(data.company)document.getElementById('f-company').value=data.company;
         if(data.country){document.getElementById('countryValue').value=data.country;document.getElementById('countrySearch').value=data.country;}
         lockFields(true);
@@ -229,8 +229,9 @@ function fillFromUser(data){
     }
 }
 
+// phone2 مستثنى — لا يُمسح ولا يُقفل
 function clearAutoFill(){
-    ['f-name','f-phone','f-phone2','f-company'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    ['f-name','f-phone','f-company'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
     document.getElementById('countryValue').value='';
     document.getElementById('countrySearch').value='';
     lockFields(false);
