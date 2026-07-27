@@ -124,16 +124,13 @@
                             style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--text-dark);box-sizing:border-box">
                     </div>
 
-                    {{-- Username — تحت الإيميل مباشرة --}}
+                    {{-- Username بدون أيقونة @ --}}
                     <div style="grid-column:1/-1">
                         <label style="display:block;margin-bottom:6px;font-size:14px;color:var(--text-muted);">Username <span style="color:#ef4444;">*</span></label>
-                        <div style="position:relative">
-                            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:15px;">&#64;</span>
-                            <input type="text" name="username" value="{{ old('username') }}" required
-                                placeholder="shop_username"
-                                style="width:100%;padding:10px 14px;padding-right:32px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;direction:ltr;color:var(--text-dark);box-sizing:border-box"
-                                autocomplete="off">
-                        </div>
+                        <input type="text" name="username" value="{{ old('username') }}" required
+                            placeholder="shop_username"
+                            style="width:100%;padding:10px 14px;background:#f8f9fc;border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:14px;direction:ltr;color:var(--text-dark);box-sizing:border-box"
+                            autocomplete="off">
                         <p style="font-size:12px;color:var(--text-muted);margin-top:4px">حروف وأرقام وشرطة سفلية فقط — يُستخدم لتسجيل دخول مدير المحل</p>
                     </div>
 
