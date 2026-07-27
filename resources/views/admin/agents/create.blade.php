@@ -244,57 +244,10 @@
             @csrf
             <input type="hidden" name="agent_type" id="agent_type_hidden" value="agent">
 
-            {{-- البيانات الأساسية --}}
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-                <div>
-                    <label class="form-label">الاسم <span style="color:red">*</span></label>
-                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
-                </div>
-                <div>
-                    <label class="form-label">الهاتف</label>
-                    <input type="text" name="phone" class="form-control" value="{{ old('phone') }}">
-                </div>
-                <div>
-                    <label class="form-label">هاتف 2</label>
-                    <input type="text" name="phone2" class="form-control" value="{{ old('phone2') }}">
-                </div>
-                <div>
-                    <label class="form-label">الدولة</label>
-                    <div style="position:relative">
-                        <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🌐</span>
-                        <input type="text" id="country_search" placeholder="ابحث عن دولة..." autocomplete="off" class="form-control" style="padding-right:34px">
-                        <input type="hidden" name="country" id="country_value" value="{{ old('country') }}">
-                        <div id="country_dropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.1)"></div>
-                    </div>
-                </div>
-                <div>
-                    <label class="form-label">الشركة</label>
-                    <input type="text" name="company" class="form-control" value="{{ old('company') }}">
-                </div>
-            </div>
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-                <div>
-                    <label class="form-label">ملاحظات</label>
-                    <textarea name="notes" class="form-control" rows="2">{{ old('notes') }}</textarea>
-                </div>
-                <div>
-                    <label class="form-label">ملاحظات داخلية</label>
-                    <textarea name="admin_notes" class="form-control" rows="2">{{ old('admin_notes') }}</textarea>
-                </div>
-            </div>
-
-            <div style="margin-bottom:22px">
-                <label class="form-label">ملف مرفق</label>
-                <input type="file" name="attachment" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
-            </div>
-
-            <hr style="border:none;border-top:1px solid var(--border-color,rgba(0,0,0,0.08));margin-bottom:22px">
-
             {{-- ────────────────────────────────────────
-                 ربط بحساب — Card Selector
+                 ربط بحساب — Card Selector  (أعلى الفورم)
             ──────────────────────────────────────── --}}
-            <div style="margin-bottom:20px">
+            <div style="margin-bottom:22px">
                 <label style="display:block;font-weight:700;font-size:13px;margin-bottom:12px;color:var(--text-muted)">
                     <i class="fas fa-link" style="margin-left:5px"></i> ربط بحساب
                 </label>
@@ -428,6 +381,53 @@
                 </div>
 
             </div><!-- end ربط بحساب -->
+
+            <hr style="border:none;border-top:1px solid var(--border-color,rgba(0,0,0,0.08));margin-bottom:22px">
+
+            {{-- البيانات الأساسية --}}
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+                <div>
+                    <label class="form-label">الاسم <span style="color:red">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
+                </div>
+                <div>
+                    <label class="form-label">الهاتف</label>
+                    <input type="text" name="phone" class="form-control" value="{{ old('phone') }}">
+                </div>
+                <div>
+                    <label class="form-label">هاتف 2</label>
+                    <input type="text" name="phone2" class="form-control" value="{{ old('phone2') }}">
+                </div>
+                <div>
+                    <label class="form-label">الدولة</label>
+                    <div style="position:relative">
+                        <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🌐</span>
+                        <input type="text" id="country_search" placeholder="ابحث عن دولة..." autocomplete="off" class="form-control" style="padding-right:34px">
+                        <input type="hidden" name="country" id="country_value" value="{{ old('country') }}">
+                        <div id="country_dropdown" style="display:none;position:absolute;top:100%;right:0;left:0;background:#fff;border:1px solid rgba(0,0,0,0.1);border-radius:8px;max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 15px rgba(0,0,0,0.1)"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">الشركة</label>
+                    <input type="text" name="company" class="form-control" value="{{ old('company') }}">
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+                <div>
+                    <label class="form-label">ملاحظات</label>
+                    <textarea name="notes" class="form-control" rows="2">{{ old('notes') }}</textarea>
+                </div>
+                <div>
+                    <label class="form-label">ملاحظات داخلية</label>
+                    <textarea name="admin_notes" class="form-control" rows="2">{{ old('admin_notes') }}</textarea>
+                </div>
+            </div>
+
+            <div style="margin-bottom:22px">
+                <label class="form-label">ملف مرفق</label>
+                <input type="file" name="attachment" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+            </div>
 
             <div style="display:flex;gap:10px;justify-content:flex-end;padding-top:10px">
                 <a href="{{ route('admin.agents.index') }}" class="btn" style="background:rgba(0,0,0,0.06)">
