@@ -42,10 +42,13 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::resource('staff', StaffController::class);
     Route::resource('customers', CustomerController::class);
     Route::resource('accounts', AccountController::class);
-    Route::resource('agents', AgentController::class);
-    Route::get('agents/check-user',             [AgentController::class, 'checkUser'])->name('agents.check-user');
+
+    // Agents — حدد المسارات الموجودة فقط (check-user قبل resource عشان ما يتعارض)
+    Route::get('agents/check-user', [AgentController::class, 'checkUser'])->name('agents.check-user');
+    Route::resource('agents', AgentController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::patch('agents/{agent}/approve-link', [AgentController::class, 'approveLink'])->name('agents.approve-link');
     Route::patch('agents/{agent}/reject-link',  [AgentController::class, 'rejectLink'])->name('agents.reject-link');
+
     Route::get('transactions',               [TransactionController::class, 'index'])->name('transactions.index');
     Route::get('transactions/create',        [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('transactions',              [TransactionController::class, 'store'])->name('transactions.store');
