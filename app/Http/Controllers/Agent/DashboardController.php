@@ -36,9 +36,15 @@ class DashboardController extends Controller
         ]);
     }
 
+    /**
+     * البحث عن أدمن المحل بالـ role الصحيح (shop_admin)
+     * كان الخطأ: role='admin' بدل role='shop_admin'
+     */
     private function shopAdmin(Agent $agent): ?User
     {
-        return User::where('shop_id', $agent->shop_id)->where('role', 'admin')->first();
+        return User::where('shop_id', $agent->shop_id)
+                   ->where('role', 'shop_admin')
+                   ->first();
     }
 
     // ================================================================
@@ -64,7 +70,6 @@ class DashboardController extends Controller
         return view('agent.shops.show', compact('agent'));
     }
 
-    // =================== توقيف النشاط ===================
     public function shopBlock(int $id)
     {
         $agent = $this->ownAgent($id);
@@ -84,7 +89,6 @@ class DashboardController extends Controller
         return back()->with('success', 'تم توقيف المحل بنجاح.');
     }
 
-    // =================== تفعيل النشاط ===================
     public function shopUnblock(int $id)
     {
         $agent = $this->ownAgent($id);
@@ -104,7 +108,6 @@ class DashboardController extends Controller
         return back()->with('success', 'تم تفعيل المحل بنجاح.');
     }
 
-    // =================== فك الارتباط ===================
     public function shopUnlink(int $id)
     {
         $agent = $this->ownAgent($id);
@@ -129,7 +132,6 @@ class DashboardController extends Controller
             return back()->with('success', 'تم تقديم طلب فك الارتباط. سيبقى السجل محفوظاً حتى تسوية الرصيد (' . number_format($agent->balance, 2) . ').');
         }
 
-        // رصيد صفر → فك فوري
         $agent->update(['link_status' => 'rejected', 'user_id' => null]);
 
         if ($admin = $this->shopAdmin($agent)) {
@@ -145,7 +147,6 @@ class DashboardController extends Controller
         return redirect()->route('agent.shops.index')->with('success', 'تم فك الارتباط بنجاح.');
     }
 
-    // =================== موافقة طلب الأدمن ===================
     public function approveLink(Agent $agent)
     {
         abort_if($agent->user_id !== auth()->id(), 403);
@@ -164,7 +165,6 @@ class DashboardController extends Controller
         return back()->with('success', 'لقد وافقت على الانضمام إلى محل "' . ($agent->shop->name ?? '') . '".');
     }
 
-    // =================== رفض طلب الأدمن ===================
     public function rejectLink(Agent $agent)
     {
         abort_if($agent->user_id !== auth()->id(), 403);
@@ -176,7 +176,7 @@ class DashboardController extends Controller
                 'title'        => '❌ رفض المندوب طلب الربط',
                 'action_label' => 'رفض طلب الربط',
                 'agent_name'   => $agentName,
-                'message'      => 'رفض المندوب طلب ربطك ولم يوافق على الارتباط. يمكنك إعادة إرسال طلب جديد.',
+                'message'      => 'رفض المندوب طلبك ولم يوافق على الارتباط. يمكنك إعادة إرسال طلب جديد.',
                 'url'          => route('admin.agents.index'),
             ]);
         }
@@ -185,7 +185,6 @@ class DashboardController extends Controller
         return back()->with('success', 'تم رفض طلب الربط.');
     }
 
-    // ================================================================
     public function transactions()  { return view('agent.transactions'); }
     public function reports()       { return view('agent.reports'); }
 
