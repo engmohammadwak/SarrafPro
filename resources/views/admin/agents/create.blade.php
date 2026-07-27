@@ -17,18 +17,40 @@
             <div class="card-header"><h3><i class="fas fa-user-tie" style="color:var(--accent);margin-left:8px"></i> بيانات المندوب</h3></div>
             <div class="card-body">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
                     <div style="grid-column:1/-1">
                         <label class="field-lbl">اسم المندوب *</label>
                         <input type="text" name="name" id="f-name" value="{{ old('name') }}" required class="field-inp">
                     </div>
+
                     <div>
                         <label class="field-lbl">رقم الهاتف</label>
                         <input type="text" name="phone" id="f-phone" value="{{ old('phone') }}" class="field-inp">
                     </div>
-                    <div>
+
+                    {{-- حقل الدولة مع بحث --}}
+                    <div style="position:relative">
                         <label class="field-lbl">الدولة</label>
-                        <input type="text" name="country" id="f-country" value="{{ old('country') }}" class="field-inp">
+                        <input type="hidden" name="country" id="countryValue" value="{{ old('country') }}">
+                        <div style="position:relative">
+                            <i class="fas fa-globe" style="position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none;z-index:1"></i>
+                            <input type="text" id="countrySearch"
+                                placeholder="ابحث عن دولة..."
+                                autocomplete="off"
+                                class="field-inp"
+                                value="{{ old('country') }}"
+                                oninput="filterCountries(this.value)"
+                                onfocus="showDropdown()"
+                                style="padding-right:34px;padding-left:34px">
+                            <i class="fas fa-chevron-down" style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:11px;pointer-events:none"></i>
+                        </div>
+                        <div id="countryDropdown"
+                            style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#fff;border:1.5px solid var(--accent,#d4a017);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:999;max-height:220px;overflow-y:auto">
+                            <div id="countryList"></div>
+                            <div id="countryEmpty" style="display:none;padding:12px 14px;font-size:13px;color:var(--text-muted);text-align:center">لا توجد نتائج</div>
+                        </div>
                     </div>
+
                     <div style="grid-column:1/-1">
                         <label class="field-lbl">اسم الشركة</label>
                         <input type="text" name="company" id="f-company" value="{{ old('company') }}" class="field-inp">
@@ -100,48 +122,156 @@
 
 <style>
 .field-lbl { display:block; margin-bottom:6px; font-size:14px; font-weight:600; color:var(--text-muted); }
-.field-inp { width:100%; padding:10px 14px; background:#f8f9fc; border:1.5px solid var(--border); border-radius:8px; font-family:Tajawal,sans-serif; font-size:14px; color:var(--text-dark); transition:border-color 0.2s; }
+.field-inp { width:100%; padding:10px 14px; background:#f8f9fc; border:1.5px solid var(--border); border-radius:8px; font-family:Tajawal,sans-serif; font-size:14px; color:var(--text-dark); transition:border-color 0.2s; box-sizing:border-box; }
 .field-inp:focus { outline:none; border-color:var(--accent); background:#fff; }
 .field-inp[readonly] { background:#f0f0f0; color:#6b7280; cursor:not-allowed; border-style:dashed; }
-.locked-badge { display:inline-flex; align-items:center; gap:4px; font-size:11px; color:#94a3b8; margin-bottom:4px; }
+.country-item { padding:9px 14px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; transition:background .15s; border-bottom:1px solid #f3f4f6; }
+.country-item:last-child { border-bottom:none; }
+.country-item:hover { background:var(--accent,#d4a017); color:#fff; }
+#countryDropdown::-webkit-scrollbar { width:5px; }
+#countryDropdown::-webkit-scrollbar-thumb { background:#ddd; border-radius:4px; }
 </style>
 
 @push('scripts')
 <script>
+/* ============ قائمة الدول ============ */
+const COUNTRIES = [
+    {name:'أفغانستان',en:'Afghanistan',flag:'🇦🇫'},{name:'ألبانيا',en:'Albania',flag:'🇦🇱'},
+    {name:'الجزائر',en:'Algeria',flag:'🇩🇿'},{name:'أندورا',en:'Andorra',flag:'🇦🇩'},
+    {name:'أنغولا',en:'Angola',flag:'🇦🇴'},{name:'الأرجنتين',en:'Argentina',flag:'🇦🇷'},
+    {name:'أرمينيا',en:'Armenia',flag:'🇦🇲'},{name:'أستراليا',en:'Australia',flag:'🇦🇺'},
+    {name:'النمسا',en:'Austria',flag:'🇦🇹'},{name:'أذربيجان',en:'Azerbaijan',flag:'🇦🇿'},
+    {name:'البحرين',en:'Bahrain',flag:'🇧🇭'},{name:'بنغلاديش',en:'Bangladesh',flag:'🇧🇩'},
+    {name:'بلاروسيا',en:'Belarus',flag:'🇧🇾'},{name:'بلجيكا',en:'Belgium',flag:'🇧🇪'},
+    {name:'بليز',en:'Belize',flag:'🇧🇿'},{name:'بنين',en:'Benin',flag:'🇧🇯'},
+    {name:'بوتان',en:'Bhutan',flag:'🇧🇹'},{name:'بوليفيا',en:'Bolivia',flag:'🇧🇴'},
+    {name:'البوسنة والهرسك',en:'Bosnia',flag:'🇧🇦'},{name:'بوتسوانا',en:'Botswana',flag:'🇧🇼'},
+    {name:'البرازيل',en:'Brazil',flag:'🇧🇷'},{name:'بروناي',en:'Brunei',flag:'🇧🇳'},
+    {name:'بلغاريا',en:'Bulgaria',flag:'🇧🇬'},{name:'بوركينا فاسو',en:'Burkina Faso',flag:'🇧🇫'},
+    {name:'بوروندي',en:'Burundi',flag:'🇧🇮'},{name:'كمبوديا',en:'Cambodia',flag:'🇰🇭'},
+    {name:'الكاميرون',en:'Cameroon',flag:'🇨🇲'},{name:'كندا',en:'Canada',flag:'🇨🇦'},
+    {name:'أفريقيا الوسطى',en:'Central African Republic',flag:'🇨🇫'},{name:'تشاد',en:'Chad',flag:'🇹🇩'},
+    {name:'تشيلي',en:'Chile',flag:'🇨🇱'},{name:'الصين',en:'China',flag:'🇨🇳'},
+    {name:'كولومبيا',en:'Colombia',flag:'🇨🇴'},{name:'الكونغو',en:'Congo',flag:'🇨🇬'},
+    {name:'كوستاريكا',en:'Costa Rica',flag:'🇨🇷'},{name:'كرواتيا',en:'Croatia',flag:'🇭🇷'},
+    {name:'كوبا',en:'Cuba',flag:'🇨🇺'},{name:'قبرص',en:'Cyprus',flag:'🇨🇾'},
+    {name:'التشيك',en:'Czech Republic',flag:'🇨🇿'},{name:'الدنمارك',en:'Denmark',flag:'🇩🇰'},
+    {name:'جيبوتي',en:'Djibouti',flag:'🇩🇯'},{name:'الدومينيكان',en:'Dominican Republic',flag:'🇩🇴'},
+    {name:'الإكوادور',en:'Ecuador',flag:'🇪🇨'},{name:'مصر',en:'Egypt',flag:'🇪🇬'},
+    {name:'السلفادور',en:'El Salvador',flag:'🇸🇻'},{name:'إريتريا',en:'Eritrea',flag:'🇪🇷'},
+    {name:'إستونيا',en:'Estonia',flag:'🇪🇪'},{name:'إثيوبيا',en:'Ethiopia',flag:'🇪🇹'},
+    {name:'فيجي',en:'Fiji',flag:'🇫🇯'},{name:'فنلندا',en:'Finland',flag:'🇫🇮'},
+    {name:'فرنسا',en:'France',flag:'🇫🇷'},{name:'الغابون',en:'Gabon',flag:'🇬🇦'},
+    {name:'غامبيا',en:'Gambia',flag:'🇬🇲'},{name:'جورجيا',en:'Georgia',flag:'🇬🇪'},
+    {name:'ألمانيا',en:'Germany',flag:'🇩🇪'},{name:'غانا',en:'Ghana',flag:'🇬🇭'},
+    {name:'اليونان',en:'Greece',flag:'🇬🇷'},{name:'غواتيمالا',en:'Guatemala',flag:'🇬🇹'},
+    {name:'غينيا',en:'Guinea',flag:'🇬🇳'},{name:'غيانا',en:'Guyana',flag:'🇬🇾'},
+    {name:'هايتي',en:'Haiti',flag:'🇭🇹'},{name:'هندوراس',en:'Honduras',flag:'🇭🇳'},
+    {name:'المجر',en:'Hungary',flag:'🇭🇺'},{name:'آيسلندا',en:'Iceland',flag:'🇮🇸'},
+    {name:'الهند',en:'India',flag:'🇮🇳'},{name:'إندونيسيا',en:'Indonesia',flag:'🇮🇩'},
+    {name:'إيران',en:'Iran',flag:'🇮🇷'},{name:'العراق',en:'Iraq',flag:'🇮🇶'},
+    {name:'أيرلندا',en:'Ireland',flag:'🇮🇪'},{name:'إسرائيل',en:'Israel',flag:'🇮🇱'},
+    {name:'إيطاليا',en:'Italy',flag:'🇮🇹'},{name:'ساحل العاج',en:'Ivory Coast',flag:'🇨🇮'},
+    {name:'جامايكا',en:'Jamaica',flag:'🇯🇲'},{name:'اليابان',en:'Japan',flag:'🇯🇵'},
+    {name:'الأردن',en:'Jordan',flag:'🇯🇴'},{name:'كازاخستان',en:'Kazakhstan',flag:'🇰🇿'},
+    {name:'كينيا',en:'Kenya',flag:'🇰🇪'},{name:'كوريا الشمالية',en:'North Korea',flag:'🇰🇵'},
+    {name:'كوريا الجنوبية',en:'South Korea',flag:'🇰🇷'},{name:'الكويت',en:'Kuwait',flag:'🇰🇼'},
+    {name:'قيرغيزستان',en:'Kyrgyzstan',flag:'🇰🇬'},{name:'لاوس',en:'Laos',flag:'🇱🇦'},
+    {name:'لاتفيا',en:'Latvia',flag:'🇱🇻'},{name:'لبنان',en:'Lebanon',flag:'🇱🇧'},
+    {name:'ليبيريا',en:'Liberia',flag:'🇱🇷'},{name:'ليبيا',en:'Libya',flag:'🇱🇾'},
+    {name:'ليتوانيا',en:'Lithuania',flag:'🇱🇹'},{name:'لوكسمبورغ',en:'Luxembourg',flag:'🇱🇺'},
+    {name:'مدغشقر',en:'Madagascar',flag:'🇲🇬'},{name:'مالاوي',en:'Malawi',flag:'🇲🇼'},
+    {name:'ماليزيا',en:'Malaysia',flag:'🇲🇾'},{name:'جزر المالديف',en:'Maldives',flag:'🇲🇻'},
+    {name:'مالي',en:'Mali',flag:'🇲🇱'},{name:'مالطا',en:'Malta',flag:'🇲🇹'},
+    {name:'موريتانيا',en:'Mauritania',flag:'🇲🇷'},{name:'المكسيك',en:'Mexico',flag:'🇲🇽'},
+    {name:'مولدوفا',en:'Moldova',flag:'🇲🇩'},{name:'موناكو',en:'Monaco',flag:'🇲🇨'},
+    {name:'منغوليا',en:'Mongolia',flag:'🇲🇳'},{name:'المغرب',en:'Morocco',flag:'🇲🇦'},
+    {name:'موزمبيق',en:'Mozambique',flag:'🇲🇿'},{name:'ميانمار',en:'Myanmar',flag:'🇲🇲'},
+    {name:'ناميبيا',en:'Namibia',flag:'🇳🇦'},{name:'نيبال',en:'Nepal',flag:'🇳🇵'},
+    {name:'هولندا',en:'Netherlands',flag:'🇳🇱'},{name:'نيوزيلندا',en:'New Zealand',flag:'🇳🇿'},
+    {name:'نيكاراغوا',en:'Nicaragua',flag:'🇳🇮'},{name:'النيجر',en:'Niger',flag:'🇳🇪'},
+    {name:'نيجيريا',en:'Nigeria',flag:'🇳🇬'},{name:'النرويج',en:'Norway',flag:'🇳🇴'},
+    {name:'عُمان',en:'Oman',flag:'🇴🇲'},{name:'باكستان',en:'Pakistan',flag:'🇵🇰'},
+    {name:'فلسطين',en:'Palestine',flag:'🇵🇸'},{name:'بنما',en:'Panama',flag:'🇵🇦'},
+    {name:'بيرو',en:'Peru',flag:'🇵🇪'},{name:'الفلبين',en:'Philippines',flag:'🇵🇭'},
+    {name:'بولندا',en:'Poland',flag:'🇵🇱'},{name:'البرتغال',en:'Portugal',flag:'🇵🇹'},
+    {name:'قطر',en:'Qatar',flag:'🇶🇦'},{name:'رومانيا',en:'Romania',flag:'🇷🇴'},
+    {name:'روسيا',en:'Russia',flag:'🇷🇺'},{name:'رواندا',en:'Rwanda',flag:'🇷🇼'},
+    {name:'المملكة العربية السعودية',en:'Saudi Arabia',flag:'🇸🇦'},{name:'السنغال',en:'Senegal',flag:'🇸🇳'},
+    {name:'صربيا',en:'Serbia',flag:'🇷🇸'},{name:'سيراليون',en:'Sierra Leone',flag:'🇸🇱'},
+    {name:'سنغافورة',en:'Singapore',flag:'🇸🇬'},{name:'سلوفاكيا',en:'Slovakia',flag:'🇸🇰'},
+    {name:'سلوفينيا',en:'Slovenia',flag:'🇸🇮'},{name:'الصومال',en:'Somalia',flag:'🇸🇴'},
+    {name:'جنوب أفريقيا',en:'South Africa',flag:'🇿🇦'},{name:'جنوب السودان',en:'South Sudan',flag:'🇸🇸'},
+    {name:'إسبانيا',en:'Spain',flag:'🇪🇸'},{name:'سريلانكا',en:'Sri Lanka',flag:'🇱🇰'},
+    {name:'السودان',en:'Sudan',flag:'🇸🇩'},{name:'السويد',en:'Sweden',flag:'🇸🇪'},
+    {name:'سويسرا',en:'Switzerland',flag:'🇨🇭'},{name:'سوريا',en:'Syria',flag:'🇸🇾'},
+    {name:'تايوان',en:'Taiwan',flag:'🇹🇼'},{name:'طاجيكستان',en:'Tajikistan',flag:'🇹🇯'},
+    {name:'تنزانيا',en:'Tanzania',flag:'🇹🇿'},{name:'تايلاند',en:'Thailand',flag:'🇹🇭'},
+    {name:'توغو',en:'Togo',flag:'🇹🇬'},{name:'ترينيداد وتوباغو',en:'Trinidad and Tobago',flag:'🇹🇹'},
+    {name:'تونس',en:'Tunisia',flag:'🇹🇳'},{name:'تركيا',en:'Turkey',flag:'🇹🇷'},
+    {name:'تركمانستان',en:'Turkmenistan',flag:'🇹🇲'},{name:'أوغندا',en:'Uganda',flag:'🇺🇬'},
+    {name:'أوكرانيا',en:'Ukraine',flag:'🇺🇦'},{name:'الإمارات العربية المتحدة',en:'UAE',flag:'🇦🇪'},
+    {name:'المملكة المتحدة',en:'United Kingdom',flag:'🇬🇧'},{name:'الولايات المتحدة الأمريكية',en:'USA',flag:'🇺🇸'},
+    {name:'أوروغواي',en:'Uruguay',flag:'🇺🇾'},{name:'أوزبكستان',en:'Uzbekistan',flag:'🇺🇿'},
+    {name:'فنزويلا',en:'Venezuela',flag:'🇻🇪'},{name:'فيتنام',en:'Vietnam',flag:'🇻🇳'},
+    {name:'اليمن',en:'Yemen',flag:'🇾🇪'},{name:'زامبيا',en:'Zambia',flag:'🇿🇲'},
+    {name:'زيمبابوي',en:'Zimbabwe',flag:'🇿🇼'},
+];
+
+function renderList(list) {
+    const container = document.getElementById('countryList');
+    const empty     = document.getElementById('countryEmpty');
+    container.innerHTML = '';
+    if (!list.length) { empty.style.display='block'; return; }
+    empty.style.display = 'none';
+    list.forEach(c => {
+        const div = document.createElement('div');
+        div.className = 'country-item';
+        div.innerHTML = `<span style="font-size:18px;line-height:1">${c.flag}</span><span>${c.name}</span><span style="color:#aaa;font-size:11px;margin-right:auto">${c.en}</span>`;
+        div.onclick = () => selectCountry(c);
+        container.appendChild(div);
+    });
+}
+function selectCountry(c) {
+    document.getElementById('countryValue').value  = c.name;
+    document.getElementById('countrySearch').value = c.name;
+    hideDropdown();
+}
+function filterCountries(q) {
+    document.getElementById('countryDropdown').style.display = 'block';
+    document.getElementById('countryValue').value = q;
+    if (!q.trim()) { renderList(COUNTRIES); return; }
+    const lq = q.toLowerCase();
+    renderList(COUNTRIES.filter(c => c.name.includes(q) || c.en.toLowerCase().includes(lq)));
+}
+function showDropdown() {
+    document.getElementById('countryDropdown').style.display = 'block';
+    renderList(COUNTRIES);
+}
+function hideDropdown() { document.getElementById('countryDropdown').style.display = 'none'; }
+document.addEventListener('click', e => {
+    if (!e.target.closest('#countrySearch') && !e.target.closest('#countryDropdown')) hideDropdown();
+});
+
+/* ============ ربط بحساب ============ */
 const colors = { none:'#94a3b8', existing:'var(--info)', create:'var(--success)' };
 
-// الحقول اللي تتملأ تلقائياً وتنقفل
-const autoFields = ['name','phone','country','company'];
-
+// فقط حقل الاسم يتملأ تلقائياً لأن باقي الحقول (phone, country, company)
+// هي بيانات المندوب وليست موجودة في نموذج User
 function lockFields(lock) {
-    autoFields.forEach(key => {
-        const el = document.getElementById('f-' + key);
-        if (!el) return;
-        el.readOnly = lock;
-        // اظهر/خفي شارة القفل
-        const badge = document.getElementById('badge-' + key);
-        if (badge) badge.style.display = lock ? 'inline-flex' : 'none';
-    });
+    const el = document.getElementById('f-name');
+    if (el) el.readOnly = lock;
 }
 
 function fillFromUser(data) {
-    // الاسم
     const nameEl = document.getElementById('f-name');
     if (nameEl && data.name) nameEl.value = data.name;
-
-    // تفاصيل إضافية لو موجودة في الـ response
-    if (data.phone)   { const el = document.getElementById('f-phone');   if (el) el.value = data.phone; }
-    if (data.country) { const el = document.getElementById('f-country'); if (el) el.value = data.country; }
-    if (data.company) { const el = document.getElementById('f-company'); if (el) el.value = data.company; }
-
     lockFields(true);
 }
 
 function clearAutoFill() {
-    autoFields.forEach(key => {
-        const el = document.getElementById('f-' + key);
-        if (el) el.value = '';
-    });
+    const nameEl = document.getElementById('f-name');
+    if (nameEl) nameEl.value = '';
     lockFields(false);
 }
 
@@ -155,7 +285,6 @@ function onLinkChange(val) {
     document.getElementById('existingFields').style.display = val === 'existing' ? 'block' : 'none';
     document.getElementById('createFields').style.display   = val === 'create'   ? 'block' : 'none';
 
-    // لو غير عن existing — امسح البيانات المملوءة وافتح الحقول
     if (val !== 'existing') {
         clearAutoFill();
         document.getElementById('userId').value = '';
@@ -179,10 +308,7 @@ function checkUser() {
         const box = document.getElementById('userResult');
         if (data.found) {
             document.getElementById('userId').value = data.user_id;
-
-            // ← تملأ الحقول وتقفلها
             fillFromUser(data);
-
             box.innerHTML = `
                 <div style="padding:12px 16px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:10px">
                     <div style="display:flex;align-items:center;gap:10px">
@@ -190,7 +316,7 @@ function checkUser() {
                         <div>
                             <div style="font-weight:700;font-size:15px">${data.name}</div>
                             <div style="font-size:12px;color:var(--text-muted)">${data.username ?? ''} &bull; ${data.email}</div>
-                            <div style="font-size:12px;color:var(--success);margin-top:2px">✓ تم ملء البيانات تلقائياً &mdash; بإمكانك تعديل الملاحظات فقط</div>
+                            <div style="font-size:12px;color:var(--success);margin-top:2px">✓ تم ملء اسم المندوب تلقائياً &mdash; أكمل باقي البيانات الإضافية</div>
                         </div>
                     </div>
                     <button type="button" onclick="resetUser()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px" title="تغيير">
