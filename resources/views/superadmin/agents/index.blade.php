@@ -13,7 +13,7 @@
         <div class="table-wrapper">
             <table>
                 <thead><tr>
-                    <th>#</th><th>الاسم</th><th>Username</th><th>البريد</th><th>تاريخ التسجيل</th><th>الإجراءات</th>
+                    <th>#</th><th>الاسم</th><th>Username</th><th>البريد</th><th>الحالة</th><th>تاريخ التسجيل</th><th>الإجراءات</th>
                 </tr></thead>
                 <tbody>
                 @forelse($agents as $agent)
@@ -22,24 +22,53 @@
                     <td style="font-weight:600">{{ $agent->name }}</td>
                     <td>
                         @if($agent->username)
-                            <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151">&#64;{{ $agent->username }}</span>
+                            <span style="background:#f3f4f6;padding:3px 10px;border-radius:6px;font-size:13px;font-family:monospace;color:#374151">{{ $agent->username }}</span>
                         @else
                             <span style="color:#d1d5db">—</span>
                         @endif
                     </td>
                     <td style="color:var(--text-muted)">{{ $agent->email }}</td>
+                    <td>
+                        @if($agent->status === 'active')
+                            <span class="badge badge-success"><i class="fas fa-circle" style="font-size:7px"></i> نشط</span>
+                        @else
+                            <span class="badge badge-danger"><i class="fas fa-circle" style="font-size:7px"></i> موقوف</span>
+                        @endif
+                    </td>
                     <td style="color:var(--text-muted);font-size:13px">{{ $agent->created_at->format('Y-m-d') }}</td>
-                    <td style="display:flex;gap:6px">
-                        <a href="{{ route('superadmin.agents.show', $agent) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></a>
-                        <a href="{{ route('superadmin.agents.edit', $agent) }}" class="btn btn-sm btn-gold"><i class="fas fa-edit"></i></a>
-                        <form action="{{ route('superadmin.agents.destroy', $agent) }}" method="POST" style="display:inline">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')"><i class="fas fa-trash"></i></button>
-                        </form>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                            <a href="{{ route('superadmin.agents.show', $agent) }}" class="btn btn-sm btn-primary"><i class="fas fa-eye"></i></a>
+                            <a href="{{ route('superadmin.agents.edit', $agent) }}" class="btn btn-sm btn-gold"><i class="fas fa-edit"></i></a>
+
+                            {{-- تعليق / تفعيل --}}
+                            @if($agent->status === 'active')
+                            <form action="{{ route('superadmin.agents.suspend', $agent) }}" method="POST" style="display:inline">
+                                @csrf @method('PATCH')
+                                <button class="btn btn-sm" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" title="تعليق الحساب"
+                                    onclick="return confirm('تعليق حساب {{ $agent->name }}؟')">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                            </form>
+                            @else
+                            <form action="{{ route('superadmin.agents.activate', $agent) }}" method="POST" style="display:inline">
+                                @csrf @method('PATCH')
+                                <button class="btn btn-sm" style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0" title="تفعيل الحساب"
+                                    onclick="return confirm('تفعيل حساب {{ $agent->name }}؟')">
+                                    <i class="fas fa-check-circle"></i>
+                                </button>
+                            </form>
+                            @endif
+
+                            <form action="{{ route('superadmin.agents.destroy', $agent) }}" method="POST" style="display:inline">
+                                @csrf @method('DELETE')
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('حذف؟')"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">لا يوجد مناديب بعد</td></tr>
+                <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">لا يوجد مناديب بعد</td></tr>
                 @endforelse
                 </tbody>
             </table>

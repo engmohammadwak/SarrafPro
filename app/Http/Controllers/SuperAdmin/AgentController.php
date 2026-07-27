@@ -38,6 +38,7 @@ class AgentController extends Controller {
             'email'      => $data['email'],
             'password'   => bcrypt($data['password']),
             'role'       => 'agent',
+            'status'     => 'active',
             'notes'      => $data['notes'] ?? null,
             'attachment' => $attachmentPath,
             'created_by' => auth()->id(),
@@ -74,7 +75,6 @@ class AgentController extends Controller {
         else $data['password'] = bcrypt($data['password']);
 
         $data['updated_by'] = auth()->id();
-
         $agent->update($data);
         return redirect()->route('superadmin.agents.show', $agent)->with('success', 'تمّ تحديث بيانات المندوب');
     }
@@ -83,6 +83,16 @@ class AgentController extends Controller {
         if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
         $agent->delete();
         return redirect()->route('superadmin.agents.index')->with('success', 'تمّ حذف المندوب');
+    }
+
+    public function suspend(User $agent) {
+        $agent->update(['status' => 'suspended', 'updated_by' => auth()->id()]);
+        return back()->with('success', 'تمّ تعليق حساب المندوب');
+    }
+
+    public function activate(User $agent) {
+        $agent->update(['status' => 'active', 'updated_by' => auth()->id()]);
+        return back()->with('success', 'تمّ تفعيل حساب المندوب');
     }
 
     public function deleteAttachment(User $agent) {

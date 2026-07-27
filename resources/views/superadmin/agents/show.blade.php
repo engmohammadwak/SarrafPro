@@ -5,7 +5,27 @@
 <div class="card" style="max-width:680px">
     <div class="card-header">
         <h3><i class="fas fa-id-badge" style="color:var(--accent);margin-left:8px"></i> {{ $agent->name }}</h3>
-        <div style="display:flex;gap:8px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+            {{-- تعليق / تفعيل --}}
+            @if($agent->status === 'active')
+            <form action="{{ route('superadmin.agents.suspend', $agent) }}" method="POST">
+                @csrf @method('PATCH')
+                <button type="submit" class="btn btn-sm"
+                    style="background:#fef3c7;color:#92400e;border:1px solid #fde68a"
+                    onclick="return confirm('تعليق حساب {{ $agent->name }}؟')">
+                    <i class="fas fa-ban"></i> تعليق الحساب
+                </button>
+            </form>
+            @else
+            <form action="{{ route('superadmin.agents.activate', $agent) }}" method="POST">
+                @csrf @method('PATCH')
+                <button type="submit" class="btn btn-sm"
+                    style="background:#d1fae5;color:#065f46;border:1px solid #a7f3d0"
+                    onclick="return confirm('تفعيل حساب {{ $agent->name }}؟')">
+                    <i class="fas fa-check-circle"></i> تفعيل الحساب
+                </button>
+            </form>
+            @endif
             <a href="{{ route('superadmin.agents.edit', $agent) }}" class="btn btn-gold btn-sm"><i class="fas fa-edit"></i> تعديل</a>
             <a href="{{ route('superadmin.agents.index') }}" class="btn btn-sm" style="background:#e5e7eb;color:#374151"><i class="fas fa-arrow-right"></i> رجوع</a>
         </div>
@@ -32,7 +52,15 @@
                 <p style="font-weight:600">{{ $agent->email }}</p>
             </div>
 
-            {{-- أضافه --}}
+            <div>
+                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">الحالة</p>
+                @if($agent->status === 'active')
+                    <span class="badge badge-success"><i class="fas fa-circle" style="font-size:7px"></i> نشط</span>
+                @else
+                    <span class="badge badge-danger"><i class="fas fa-circle" style="font-size:7px"></i> موقوف</span>
+                @endif
+            </div>
+
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">أضيفه</p>
                 @if($agent->creator)
@@ -53,7 +81,6 @@
                 <p style="font-weight:600">{{ $agent->created_at->format('Y-m-d H:i') }}</p>
             </div>
 
-            {{-- آخر تحديث --}}
             <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">آخر تحديث</p>
                 @if($agent->updated_by)
@@ -85,7 +112,6 @@
             </div>
             @endif
 
-            {{-- الملف المرفق --}}
             @if($agent->attachment)
             @php
                 $ext     = strtolower(pathinfo($agent->attachment, PATHINFO_EXTENSION));
@@ -94,7 +120,6 @@
             @endphp
             <div style="grid-column:1/-1">
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:10px">ملف مرفق</p>
-
                 @if($isImage)
                 <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;display:inline-block;max-width:100%;margin-bottom:12px">
                     <img src="{{ Storage::url($agent->attachment) }}" alt="ملف مرفق"
@@ -102,48 +127,33 @@
                          onclick="window.open(this.src,'_blank')">
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <a href="{{ Storage::url($agent->attachment) }}" target="_blank"
-                       class="btn btn-sm" style="background:#f3f4f6;color:#374151">
+                    <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm" style="background:#f3f4f6;color:#374151">
                         <i class="fas fa-expand-alt"></i> فتح بالحجم الكامل
                     </a>
-                    <form method="POST" action="{{ route('superadmin.agents.attachment.destroy', $agent) }}"
-                          onsubmit="return confirm('تأكيد حذف الصورة؟')">
+                    <form method="POST" action="{{ route('superadmin.agents.attachment.destroy', $agent) }}" onsubmit="return confirm('تأكيد حذف الصورة؟')">
                         @csrf @method('DELETE')
                         <button type="submit" class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca">
                             <i class="fas fa-trash"></i> حذف الصورة
                         </button>
                     </form>
                 </div>
-
                 @elseif($isPdf)
                 <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px">
-                    <iframe src="{{ Storage::url($agent->attachment) }}"
-                            style="width:100%;height:480px;border:none;display:block" title="PDF"></iframe>
+                    <iframe src="{{ Storage::url($agent->attachment) }}" style="width:100%;height:480px;border:none;display:block" title="PDF"></iframe>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
-                        <i class="fas fa-file-pdf"></i> فتح الملف
-                    </a>
-                    <form method="POST" action="{{ route('superadmin.agents.attachment.destroy', $agent) }}"
-                          onsubmit="return confirm('تأكيد حذف الملف؟')">
+                    <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm btn-primary"><i class="fas fa-file-pdf"></i> فتح الملف</a>
+                    <form method="POST" action="{{ route('superadmin.agents.attachment.destroy', $agent) }}" onsubmit="return confirm('تأكيد حذف الملف؟')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca">
-                            <i class="fas fa-trash"></i> حذف الملف
-                        </button>
+                        <button type="submit" class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca"><i class="fas fa-trash"></i> حذف الملف</button>
                     </form>
                 </div>
-
                 @else
                 <div style="display:flex;gap:8px;flex-wrap:wrap">
-                    <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm btn-primary">
-                        <i class="fas fa-file-download"></i> تحميل الملف
-                    </a>
-                    <form method="POST" action="{{ route('superadmin.agents.attachment.destroy', $agent) }}"
-                          onsubmit="return confirm('تأكيد حذف الملف؟')">
+                    <a href="{{ Storage::url($agent->attachment) }}" target="_blank" class="btn btn-sm btn-primary"><i class="fas fa-file-download"></i> تحميل الملف</a>
+                    <form method="POST" action="{{ route('superadmin.agents.attachment.destroy', $agent) }}" onsubmit="return confirm('تأكيد حذف الملف؟')">
                         @csrf @method('DELETE')
-                        <button type="submit" class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca">
-                            <i class="fas fa-trash"></i> حذف الملف
-                        </button>
+                        <button type="submit" class="btn btn-sm" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca"><i class="fas fa-trash"></i> حذف الملف</button>
                     </form>
                 </div>
                 @endif

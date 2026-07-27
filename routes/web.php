@@ -31,6 +31,8 @@ Route::prefix('super-admin')->name('superadmin.')->middleware('super_admin')->gr
     Route::patch('shops/{shop}/activate', [SuperAdminShop::class, 'activate'])->name('shops.activate');
     Route::resource('users',  SuperAdminUser::class);
     Route::resource('agents', SuperAdminAgent::class);
+    Route::patch('agents/{agent}/suspend',  [SuperAdminAgent::class, 'suspend'])->name('agents.suspend');
+    Route::patch('agents/{agent}/activate', [SuperAdminAgent::class, 'activate'])->name('agents.activate');
     Route::delete('agents/{agent}/attachment', [SuperAdminAgent::class, 'deleteAttachment'])->name('agents.attachment.destroy');
 });
 
