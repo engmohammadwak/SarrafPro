@@ -3,11 +3,19 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     public function up(): void
     {
+        if (
+            !Schema::hasTable('agents') ||
+            !Schema::hasTable('shops') ||
+            !Schema::hasTable('users') ||
+            !Schema::hasTable('notifications')
+        ) {
+            return;
+        }
         // جلب كل طلبات الربط المعلقة التي ليس لها إشعار بعد
         $pendingAgents = DB::table('agents')
             ->join('users', 'agents.user_id', '=', 'users.id')
