@@ -4,6 +4,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
@@ -22,12 +23,15 @@ class ShopController extends Controller {
         $data = $request->validate([
             'name'           => 'required|string|max:100',
             'name_en'        => 'nullable|string|max:100',
+            // withoutTrashed() excludes soft-deleted rows from the uniqueness check
+            // so the DB insert won't hit a duplicate key on a previously deleted username
             'username'       => ['nullable','string','max:50','alpha_dash',
-                                  Rule::unique('shops','username')->whereNull('deleted_at')],
+                                  Rule::unique('shops','username')->withoutTrashed()],
             'license_number' => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
             'email'          => ['nullable','email',
-                                  Rule::unique('shops','email')->whereNull('deleted_at')],
+                                  Rule::unique('shops','email')->withoutTrashed(),
+                                  Rule::unique('users','email')],
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
@@ -41,28 +45,31 @@ class ShopController extends Controller {
             $attachmentPath = $request->file('attachment')->store('shops/attachments', 'public');
         }
 
-        $shop = Shop::create([
-            'name'           => $data['name'],
-            'name_en'        => $data['name_en'] ?? null,
-            'username'       => $data['username'] ?? null,
-            'license_number' => $data['license_number'] ?? null,
-            'phone'          => $data['phone'] ?? null,
-            'email'          => $data['email'] ?? null,
-            'city'           => $data['city'] ?? null,
-            'notes'          => $data['notes'] ?? null,
-            'attachment'     => $attachmentPath,
-            'status'         => 'active',
-            'created_by'     => auth()->id(),
-        ]);
+        // Wrap in a transaction so both shop + user are created atomically
+        DB::transaction(function () use ($data, $attachmentPath) {
+            $shop = Shop::create([
+                'name'           => $data['name'],
+                'name_en'        => $data['name_en'] ?? null,
+                'username'       => $data['username'] ?? null,
+                'license_number' => $data['license_number'] ?? null,
+                'phone'          => $data['phone'] ?? null,
+                'email'          => $data['email'] ?? null,
+                'city'           => $data['city'] ?? null,
+                'notes'          => $data['notes'] ?? null,
+                'attachment'     => $attachmentPath,
+                'status'         => 'active',
+                'created_by'     => auth()->id(),
+            ]);
 
-        User::create([
-            'name'       => $data['admin_name'],
-            'email'      => $data['admin_email'],
-            'password'   => bcrypt($data['admin_password']),
-            'role'       => 'shop_admin',
-            'shop_id'    => $shop->id,
-            'created_by' => auth()->id(),
-        ]);
+            User::create([
+                'name'       => $data['admin_name'],
+                'email'      => $data['admin_email'],
+                'password'   => bcrypt($data['admin_password']),
+                'role'       => 'shop_admin',
+                'shop_id'    => $shop->id,
+                'created_by' => auth()->id(),
+            ]);
+        });
 
         return redirect()->route('superadmin.shops.index')->with('success', 'تمّ إنشاء المحل بنجاح');
     }
@@ -81,11 +88,11 @@ class ShopController extends Controller {
             'name'           => 'required|string|max:100',
             'name_en'        => 'nullable|string|max:100',
             'username'       => ['nullable','string','max:50','alpha_dash',
-                                  Rule::unique('shops','username')->ignore($shop->id)->whereNull('deleted_at')],
+                                  Rule::unique('shops','username')->ignore($shop->id)->withoutTrashed()],
             'license_number' => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
             'email'          => ['nullable','email',
-                                  Rule::unique('shops','email')->ignore($shop->id)->whereNull('deleted_at')],
+                                  Rule::unique('shops','email')->ignore($shop->id)->withoutTrashed()],
             'city'           => 'nullable|string|max:100',
             'notes'          => 'nullable|string|max:1000',
             'attachment'     => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
@@ -101,13 +108,10 @@ class ShopController extends Controller {
     }
 
     public function destroy(Shop $shop) {
-        // حذف الملف المرفق
         if ($shop->attachment) {
             Storage::disk('public')->delete($shop->attachment);
         }
-        // حذف جميع مستخدمي المحل حتى تتحرر إيميلاتهم
         User::where('shop_id', $shop->id)->delete();
-        // حذف المحل (soft delete)
         $shop->delete();
         return redirect()->route('superadmin.shops.index')->with('success', 'تمّ حذف المحل وجميع مستخدميه');
     }
