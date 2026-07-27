@@ -20,13 +20,20 @@ class AgentController extends Controller {
         $request->validate(['username' => 'required|string']);
         $search = trim($request->username);
 
-        $user = User::where('username', $search)
-                    ->orWhere('email', $search)
-                    ->orWhere('name', $search)
+        $user = User::where(function($q) use ($search) {
+                        $q->where('username', $search)
+                          ->orWhere('email', $search)
+                          ->orWhere('name', $search);
+                    })
                     ->first();
 
         if (!$user) {
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
+        }
+
+        // الحساب الموقوف يُعامل كأنه غير موجود
+        if ($user->status !== 'active') {
+            return response()->json(['found' => false, 'message' => 'هذا الحساب موقوف، لا يمكن الربط به']);
         }
 
         $agent = Agent::where('user_id', $user->id)->first();
@@ -61,6 +68,14 @@ class AgentController extends Controller {
             'new_password'=> 'nullable|min:8',
         ]);
 
+        // تحقق إضافي: لو اختار حساب موجود وكان موقوفاً
+        if ($request->link_type === 'existing' && $request->user_id) {
+            $linkedUser = User::find($request->user_id);
+            if (!$linkedUser || $linkedUser->status !== 'active') {
+                return back()->withErrors(['user_id' => 'هذا الحساب موقوف، لا يمكن الربط به.'])->withInput();
+            }
+        }
+
         $attachmentPath = null;
         if ($request->hasFile('attachment')) {
             $attachmentPath = $request->file('attachment')->store('agents/attachments', 'public');
@@ -75,6 +90,7 @@ class AgentController extends Controller {
                 'email'    => $request->new_email,
                 'password' => bcrypt($request->new_password),
                 'role'     => 'agent',
+                'status'   => 'active',
             ]);
             $userId = $newUser->id; $linkStatus = 'approved';
         }
@@ -139,8 +155,7 @@ class AgentController extends Controller {
 
     public function destroy(Agent $agent) {
         abort_if($agent->shop_id !== $this->shopId(), 403);
-        // Soft delete — لا يُحذف حساب المستخدم ولا يُحذف الملف.
-        // المندوب يختفي من الواجهة ويبقى في القاعدة مع جميع معاملاته
+        // Soft delete — لا يُحذف حساب المستخدم ولا الملف
         $agent->delete();
         return back()->with('success', 'تم حذف المندوب.');
     }
