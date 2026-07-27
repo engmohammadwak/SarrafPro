@@ -117,6 +117,17 @@
                         <p style="font-size:13px;color:var(--text-muted)">{{ $agent->user->email ?? '' }}</p>
                     </div>
                 </div>
+
+                {{-- تنبيه لو اسم الحساب يختلف عن اسم المندوب --}}
+                @if($agent->user && $agent->user->name !== $agent->name)
+                <div style="margin-top:14px;padding:10px 14px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.35);border-radius:8px;display:flex;align-items:flex-start;gap:10px">
+                    <i class="fas fa-exclamation-triangle" style="color:#b45309;margin-top:2px;flex-shrink:0"></i>
+                    <div style="font-size:13px;color:#92400e;line-height:1.6">
+                        اسم الحساب (<strong>{{ $agent->user->name }}</strong>) يختلف عن اسم المندوب (<strong>{{ $agent->name }}</strong>).<br>
+                        <span style="color:var(--text-muted)">اسم المندوب هو المعتمد في السجلات — عدّله من حقل الاسم بالأسفل إذا أردت التوحيد.</span>
+                    </div>
+                </div>
+                @endif
             </div>
         </div>
         @endif
@@ -270,7 +281,6 @@ function switchLinkTab(tab) {
     document.getElementById('tab-existing').style.color      = isExisting ? '#1a1f3c' : 'var(--text-muted)';
     document.getElementById('tab-create').style.background   = isExisting ? '#f4f6fb' : '#c9a84c';
     document.getElementById('tab-create').style.color        = isExisting ? 'var(--text-muted)' : '#1a1f3c';
-    // إعادة ضبط link_type
     document.getElementById('link_type_field').value = tab === 'existing' ? 'none' : 'create';
 }
 
@@ -317,7 +327,6 @@ function clearSelection() {
     document.getElementById('selectedUser').style.display = 'none';
 }
 
-// البحث بالضغط على Enter
 document.getElementById('searchUsername').addEventListener('keydown', function(e){
     if (e.key === 'Enter') { e.preventDefault(); doSearch(); }
 });
