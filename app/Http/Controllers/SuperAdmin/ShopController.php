@@ -83,12 +83,20 @@ class ShopController extends Controller {
     }
 
     public function update(Request $request, Shop $shop) {
+        // جمع كل مستخدمي المحل (قد يكون أكثر من واحد)
+        $shopUserIds = User::where('shop_id', $shop->id)->pluck('id')->toArray();
+
         $data = $request->validate([
             'name'           => 'required|string|max:100',
             'name_en'        => 'nullable|string|max:100',
-            'username'       => ['required','string','max:50','alpha_dash',
-                                  Rule::unique('shops','username')->ignore($shop->id)->withoutTrashed(),
-                                  Rule::unique('users','username')->ignore($shop->admin?->id)],
+            'username'       => array_merge(
+                ['required','string','max:50','alpha_dash'],
+                [Rule::unique('shops','username')->ignore($shop->id)->withoutTrashed()],
+                // تجاهل جميع مستخدمي هذا المحل
+                !empty($shopUserIds)
+                    ? [Rule::unique('users','username')->whereNotIn('id', $shopUserIds)]
+                    : [Rule::unique('users','username')]
+            ),
             'license_number' => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
             'email'          => ['nullable','email',
@@ -103,7 +111,6 @@ class ShopController extends Controller {
             $data['attachment'] = $request->file('attachment')->store('shops/attachments', 'public');
         }
 
-        // سجّل مَن عمل التحديث
         $data['updated_by'] = auth()->id();
 
         DB::transaction(function () use ($shop, $data, $request) {
