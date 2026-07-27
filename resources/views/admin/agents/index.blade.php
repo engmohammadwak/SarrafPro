@@ -24,6 +24,9 @@
             </thead>
             <tbody>
             @forelse($agents as $a)
+            @php
+                $userSuspended = $a->user && $a->user->status === 'suspended';
+            @endphp
             <tr>
                 <td>{{ $loop->iteration }}</td>
                 <td style="font-weight:600">{{ $a->name }}</td>
@@ -36,8 +39,12 @@
                 <td>
                     <div style="display:flex;flex-direction:column;gap:5px">
 
-                        {{-- شارة التفعيل: شغال / معطل --}}
-                        @if($a->is_active)
+                        {{-- شارة التفعيل: شغال / موقوف (سوبر ادمن) / معطل --}}
+                        @if($userSuspended)
+                            <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(239,68,68,0.12);color:#dc2626;width:fit-content;white-space:nowrap">
+                                <i class="fas fa-ban" style="font-size:9px"></i> موقوف
+                            </span>
+                        @elseif($a->is_active)
                             <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:rgba(34,197,94,0.13);color:#15803d;width:fit-content;white-space:nowrap">
                                 <i class="fas fa-circle" style="font-size:6px"></i> شغال
                             </span>
