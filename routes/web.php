@@ -57,9 +57,17 @@ Route::prefix('agent')->name('agent.')->middleware('agent')->group(function () {
     Route::get('notifications', [AgentDashboard::class, 'notifications'])->name('notifications');
     Route::post('notifications/read-all',  [AgentDashboard::class, 'markAllRead'])->name('notifications.read-all');
     Route::get('notifications/{id}/read', [AgentDashboard::class, 'markOneRead'])->name('notifications.read-one');
-    Route::get('reports',       [AgentDashboard::class, 'reports'])->name('reports');
-    Route::post('logout',       [LoginController::class, 'logout'])->name('logout');
-    // قبول / رفض طلب الربط من قبل المندوب نفسه
+    Route::get('reports',  [AgentDashboard::class, 'reports'])->name('reports');
+    Route::post('logout',  [LoginController::class, 'logout'])->name('logout');
+
+    // طلبات الربط
     Route::patch('agents/{agent}/approve', [AgentDashboard::class, 'approveLink'])->name('agents.approve');
     Route::patch('agents/{agent}/reject',  [AgentDashboard::class, 'rejectLink'])->name('agents.reject');
+
+    // صفحة المحلات
+    Route::get('shops',                        [AgentDashboard::class, 'shops'])->name('shops.index');
+    Route::get('shops/{agent}',                [AgentDashboard::class, 'shopShow'])->name('shops.show');
+    Route::patch('shops/{agent}/block',        [AgentDashboard::class, 'shopBlock'])->name('shops.block');
+    Route::patch('shops/{agent}/unblock',      [AgentDashboard::class, 'shopUnblock'])->name('shops.unblock');
+    Route::patch('shops/{agent}/unlink',       [AgentDashboard::class, 'shopUnlink'])->name('shops.unlink');
 });

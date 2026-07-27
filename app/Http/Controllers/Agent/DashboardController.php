@@ -8,6 +8,7 @@ use Illuminate\Notifications\DatabaseNotification;
 
 class DashboardController extends Controller
 {
+    /** سجلات المندوب الحالي */
     private function agentRecords()
     {
         return Agent::with('shop')
@@ -15,13 +16,23 @@ class DashboardController extends Controller
             ->get();
     }
 
+    /** تحقق ملكية السجل للمندوب الحالي */
+    private function ownAgent(int $id): Agent
+    {
+        $agent = Agent::with('shop')->findOrFail($id);
+        abort_if($agent->user_id !== auth()->id(), 403);
+        return $agent;
+    }
+
+    // ================================================================
+    // DASHBOARD
+    // ================================================================
     public function index()
     {
         $agents        = $this->agentRecords();
         $approvedCount = $agents->where('link_status', 'approved')->count();
         $pendingCount  = $agents->where('link_status', 'pending')->count();
         $rejectedCount = $agents->where('link_status', 'rejected')->count();
-        // الطلبات المعلقة التي تحتاج موافقة المندوب
         $pendingAgents = $agents->where('link_status', 'pending');
 
         return view('agent.dashboard', compact(
@@ -29,6 +40,68 @@ class DashboardController extends Controller
         ));
     }
 
+    // ================================================================
+    // SHOPS
+    // ================================================================
+    public function shops()
+    {
+        $agents = Agent::with('shop')
+            ->where('user_id', auth()->id())
+            ->latest()
+            ->get();
+
+        return view('agent.shops.index', compact('agents'));
+    }
+
+    public function shopShow(int $id)
+    {
+        $agent = $this->ownAgent($id);
+        return view('agent.shops.show', compact('agent'));
+    }
+
+    public function shopBlock(int $id)
+    {
+        $agent = $this->ownAgent($id);
+        abort_if($agent->link_status !== 'approved', 403);
+        $agent->update(['is_active' => false]);
+        return back()->with('success', 'تم توقيف المحل بنجاح.');
+    }
+
+    public function shopUnblock(int $id)
+    {
+        $agent = $this->ownAgent($id);
+        abort_if($agent->link_status !== 'approved', 403);
+        $agent->update(['is_active' => true]);
+        return back()->with('success', 'تم تفعيل المحل بنجاح.');
+    }
+
+    public function shopUnlink(int $id)
+    {
+        $agent = $this->ownAgent($id);
+        $agent->update(['link_status' => 'rejected', 'user_id' => null]);
+        return redirect()->route('agent.shops.index')->with('success', 'تم طلب فك الربط بنجاح.');
+    }
+
+    // ================================================================
+    // LINK REQUESTS (popup)
+    // ================================================================
+    public function approveLink(Agent $agent)
+    {
+        abort_if($agent->user_id !== auth()->id(), 403);
+        $agent->update(['link_status' => 'approved']);
+        return back()->with('success', 'لقد وافقت على الانضمام إلى محل "' . ($agent->shop->name ?? '') . '".');
+    }
+
+    public function rejectLink(Agent $agent)
+    {
+        abort_if($agent->user_id !== auth()->id(), 403);
+        $agent->update(['link_status' => 'rejected', 'user_id' => null]);
+        return back()->with('success', 'تم رفض طلب الربط.');
+    }
+
+    // ================================================================
+    // MISC
+    // ================================================================
     public function transactions()
     {
         return view('agent.transactions');
@@ -49,38 +122,14 @@ class DashboardController extends Controller
             ->first();
 
         $redirectUrl = route('agent.dashboard');
-
         if ($notification) {
             $data = is_array($notification->data)
                 ? $notification->data
                 : json_decode($notification->data, true);
             $redirectUrl = $data['url'] ?? $redirectUrl;
-            if (!$notification->read_at) {
-                $notification->markAsRead();
-            }
+            if (!$notification->read_at) $notification->markAsRead();
         }
-
         return redirect($redirectUrl);
-    }
-
-    /**
-     * المندوب يوافق على طلب الربط
-     */
-    public function approveLink(Agent $agent)
-    {
-        abort_if($agent->user_id !== auth()->id(), 403);
-        $agent->update(['link_status' => 'approved']);
-        return back()->with('success', 'لقد وافقت على الانضمام إلى محل "' . ($agent->shop->name ?? '') . '".');
-    }
-
-    /**
-     * المندوب يرفض طلب الربط
-     */
-    public function rejectLink(Agent $agent)
-    {
-        abort_if($agent->user_id !== auth()->id(), 403);
-        $agent->update(['link_status' => 'rejected', 'user_id' => null]);
-        return back()->with('success', 'تم رفض طلب الربط.');
     }
 
     public function reports()
@@ -91,9 +140,7 @@ class DashboardController extends Controller
     public function markAllRead(Request $request)
     {
         auth()->user()->unreadNotifications->markAsRead();
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true]);
-        }
+        if ($request->wantsJson()) return response()->json(['success' => true]);
         return redirect()->route('agent.notifications');
     }
 }
