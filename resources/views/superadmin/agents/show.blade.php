@@ -2,11 +2,10 @@
 @section('title', $agent->name)
 @section('page-title', 'تفاصيل المندوب')
 @section('content')
-<div class="card" style="max-width:680px">
+<div class="card" style="max-width:720px">
     <div class="card-header">
         <h3><i class="fas fa-id-badge" style="color:var(--accent);margin-left:8px"></i> {{ $agent->name }}</h3>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-            {{-- تعليق / تفعيل --}}
             @if($agent->status === 'active')
             <form action="{{ route('superadmin.agents.suspend', $agent) }}" method="POST">
                 @csrf @method('PATCH')
@@ -31,6 +30,28 @@
         </div>
     </div>
     <div class="card-body">
+
+        {{-- بطاقة الرصيد الإجمالي --}}
+        @if($totalBalance !== null)
+        <div style="background:linear-gradient(135deg,#0f766e,#0d9488);border-radius:14px;padding:20px 24px;margin-bottom:28px;display:flex;align-items:center;gap:16px;color:#fff">
+            <div style="width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div>
+                <p style="font-size:12px;opacity:0.8;margin-bottom:4px">الرصيد الإجمالي في الحساب</p>
+                <p style="font-size:26px;font-weight:800;letter-spacing:0.5px;line-height:1">
+                    {{ number_format($totalBalance, 2) }}
+                    <span style="font-size:14px;font-weight:500;opacity:0.85;margin-right:4px">ر.ع</span>
+                </p>
+            </div>
+        </div>
+        @else
+        <div style="background:#f8f9fc;border:1px dashed var(--border);border-radius:14px;padding:18px 24px;margin-bottom:28px;display:flex;align-items:center;gap:12px;color:var(--text-muted)">
+            <i class="fas fa-wallet" style="font-size:20px;opacity:0.4"></i>
+            <p style="font-size:14px">لا يوجد سجل رصيد لهذا المندوب بعد</p>
+        </div>
+        @endif
+
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px">
 
             <div>

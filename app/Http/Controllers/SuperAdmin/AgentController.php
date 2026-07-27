@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Agent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -49,7 +50,10 @@ class AgentController extends Controller {
 
     public function show(User $agent) {
         $agent->load('creator','updater');
-        return view('superadmin.agents.show', compact('agent'));
+        // جلب رصيد المندوب من جدول agents (مرتبط بـ user_id)
+        $agentRecord = Agent::where('user_id', $agent->id)->first();
+        $totalBalance = $agentRecord ? $agentRecord->balance : null;
+        return view('superadmin.agents.show', compact('agent', 'totalBalance'));
     }
 
     public function edit(User $agent) {
