@@ -10,12 +10,12 @@ class SuperAdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         if (!auth()->check()) {
-            return redirect()->route('superadmin.login');
+            return redirect()->route('login');
         }
 
         if (auth()->user()->role !== 'super_admin') {
             auth()->logout();
-            return redirect()->route('superadmin.login')
+            return redirect()->route('login')
                 ->withErrors(['email' => 'هذا الحساب ليس حساب سوبر أدمن']);
         }
 
