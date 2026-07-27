@@ -58,10 +58,10 @@ Route::prefix('admin')->name('admin.')->middleware('admin')->group(function () {
     Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
 
     // إشعارات
-    Route::get('notifications',                    [AdminNotif::class, 'index'])->name('notifications.index');
-    Route::get('notifications/latest',             [AdminNotif::class, 'latest'])->name('notifications.latest');
-    Route::post('notifications/read-all',          [AdminNotif::class, 'markAllRead'])->name('notifications.read-all');
-    Route::get('notifications/{id}/read',          [AdminNotif::class, 'markOneRead'])->name('notifications.read');
+    Route::get('notifications',           [AdminNotif::class, 'index'])->name('notifications.index');
+    Route::get('notifications/latest',    [AdminNotif::class, 'latest'])->name('notifications.latest');
+    Route::post('notifications/read-all', [AdminNotif::class, 'markAllRead'])->name('notifications.read-all');
+    Route::get('notifications/{id}/read', [AdminNotif::class, 'markOneRead'])->name('notifications.read');
 });
 
 Route::prefix('agent')->name('agent.')->middleware('agent')->group(function () {
@@ -78,9 +78,10 @@ Route::prefix('agent')->name('agent.')->middleware('agent')->group(function () {
     Route::patch('agents/{agent}/reject',  [AgentDashboard::class, 'rejectLink'])->name('agents.reject');
 
     // صفحة المحلات
-    Route::get('shops',                   [AgentDashboard::class, 'shops'])->name('shops.index');
-    Route::get('shops/{agent}',           [AgentDashboard::class, 'shopShow'])->name('shops.show');
-    Route::patch('shops/{agent}/block',   [AgentDashboard::class, 'shopBlock'])->name('shops.block');
-    Route::patch('shops/{agent}/unblock', [AgentDashboard::class, 'shopUnblock'])->name('shops.unblock');
-    Route::patch('shops/{agent}/unlink',  [AgentDashboard::class, 'shopUnlink'])->name('shops.unlink');
+    Route::get('shops',                            [AgentDashboard::class, 'shops'])->name('shops.index');
+    Route::get('shops/{agent}/transactions',       [AgentDashboard::class, 'shopTransactions'])->name('shops.transactions');
+    Route::get('shops/{agent}',                    [AgentDashboard::class, 'shopShow'])->name('shops.show');
+    Route::patch('shops/{agent}/block',            [AgentDashboard::class, 'shopBlock'])->name('shops.block');
+    Route::patch('shops/{agent}/unblock',          [AgentDashboard::class, 'shopUnblock'])->name('shops.unblock');
+    Route::patch('shops/{agent}/unlink',           [AgentDashboard::class, 'shopUnlink'])->name('shops.unlink');
 });

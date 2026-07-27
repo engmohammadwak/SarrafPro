@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Agent;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agent;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -36,10 +37,6 @@ class DashboardController extends Controller
         ]);
     }
 
-    /**
-     * البحث عن أدمن المحل بالـ role الصحيح (shop_admin)
-     * كان الخطأ: role='admin' بدل role='shop_admin'
-     */
     private function shopAdmin(Agent $agent): ?User
     {
         return User::where('shop_id', $agent->shop_id)
@@ -68,6 +65,20 @@ class DashboardController extends Controller
     {
         $agent = $this->ownAgent($id);
         return view('agent.shops.show', compact('agent'));
+    }
+
+    /** معاملات محل محدد */
+    public function shopTransactions(int $id)
+    {
+        $agent = $this->ownAgent($id);
+
+        $transactions = Transaction::with('customer')
+            ->where('shop_id', $agent->shop_id)
+            ->where('agent_id', $agent->id)
+            ->latest()
+            ->paginate(30);
+
+        return view('agent.shops.transactions', compact('agent', 'transactions'));
     }
 
     public function shopBlock(int $id)
