@@ -1,14 +1,15 @@
 <?php
 namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller {
 
     public function showLogin() {
-        if (auth()->check()) return $this->redirectByRole(auth()->user()->role);
+        if (auth()->check()) {
+            return $this->redirectByRole(auth()->user()->role);
+        }
         return view('auth.login');
     }
 
@@ -28,16 +29,8 @@ class LoginController extends Controller {
             return back()->withErrors(['login' => 'بيانات الدخول غير صحيحة'])->withInput();
         }
 
-        // تحقق من حالة الحساب
-        $user = auth()->user();
-        if (isset($user->status) && $user->status === 'suspended') {
-            Auth::logout();
-            $request->session()->invalidate();
-            return back()->withErrors(['login' => 'تم تعليق هذا الحساب'])->withInput();
-        }
-
         $request->session()->regenerate();
-        return $this->redirectByRole($user->role);
+        return $this->redirectByRole(auth()->user()->role);
     }
 
     public function logout(Request $request) {
@@ -48,11 +41,21 @@ class LoginController extends Controller {
     }
 
     private function redirectByRole(string $role) {
-        return match($role) {
-            'super_admin'            => redirect()->route('superadmin.dashboard'),
-            'admin', 'shop_admin', 'staff' => redirect()->route('admin.dashboard'),
-            'agent', 'cooperation'   => redirect()->route('agent.dashboard'),
-            default                  => redirect('/')->with('error', 'صلاحياتك غير محددة بعد'),
-        };
+        switch ($role) {
+            case 'super_admin':
+                return redirect()->route('superadmin.dashboard');
+            case 'admin':
+            case 'shop_admin':
+            case 'staff':
+                return redirect()->route('admin.dashboard');
+            case 'agent':
+            case 'cooperation':
+                return redirect()->route('agent.dashboard');
+            default:
+                // دور غير معروف → أخرجه وأظهر رسالة
+                Auth::logout();
+                return redirect()->route('login')
+                    ->withErrors(['login' => 'ليس لديك صلاحية للدخول (دور: ' . $role . ')']);
+        }
     }
 }
