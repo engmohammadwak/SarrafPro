@@ -8,10 +8,11 @@ class AgentMiddleware {
         if (!auth()->check()) {
             return redirect()->route('login');
         }
-        if (auth()->user()->role !== 'agent') {
+        $role = auth()->user()->role;
+        if (!in_array($role, ['agent', 'cooperation'])) {
             auth()->logout();
             return redirect()->route('login')
-                ->withErrors(['email' => 'هذا الحساب ليس حساب مندوب.']);
+                ->withErrors(['email' => 'هذا الحساب ليس حساب مندوب أو تعاون.']);
         }
         return $next($request);
     }
