@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // منع المتصفح من تخزين الصفحات
+        $middleware->appendToGroup('web', \App\Http\Middleware\PreventBackHistory::class);
+
         $middleware->alias([
             'admin'       => \App\Http\Middleware\AdminMiddleware::class,
             'super_admin' => \App\Http\Middleware\SuperAdminMiddleware::class,
