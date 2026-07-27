@@ -25,10 +25,6 @@
                 @endif
             </div>
             <div>
-                <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">البريد الإلكتروني</p>
-                <p style="font-weight:600">{{ $user->email }}</p>
-            </div>
-            <div>
                 <p style="color:var(--text-muted);font-size:12px;margin-bottom:5px">أضيفه</p>
                 @if($user->creator)
                     <div style="display:flex;align-items:center;gap:8px">
