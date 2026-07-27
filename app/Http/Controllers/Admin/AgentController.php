@@ -139,7 +139,8 @@ class AgentController extends Controller {
 
     public function destroy(Agent $agent) {
         abort_if($agent->shop_id !== $this->shopId(), 403);
-        if ($agent->attachment) Storage::disk('public')->delete($agent->attachment);
+        // Soft delete — لا يُحذف حساب المستخدم ولا يُحذف الملف.
+        // المندوب يختفي من الواجهة ويبقى في القاعدة مع جميع معاملاته
         $agent->delete();
         return back()->with('success', 'تم حذف المندوب.');
     }
