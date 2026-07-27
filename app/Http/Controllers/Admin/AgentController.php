@@ -15,7 +15,7 @@ class AgentController extends Controller {
 
     public function create() { return view('admin.agents.create'); }
 
-    // AJAX: التحقق من وجود المستخدم باليوزرنيم أو الإيميل أو الاسم
+    // AJAX: التحقق من وجود المستخدم + جلب بيانات المندوب المرتبط به إن وجد
     public function checkUser(Request $request) {
         $request->validate(['username' => 'required|string']);
         $search = trim($request->username);
@@ -29,12 +29,20 @@ class AgentController extends Controller {
             return response()->json(['found' => false, 'message' => 'لا يوجد حساب بهذا الاسم']);
         }
 
+        // جلب بيانات المندوب المرتبط بهذا الحساب (إن وجد) لملء الحقول تلقائياً
+        $agent = Agent::where('user_id', $user->id)->first();
+
         return response()->json([
             'found'    => true,
             'user_id'  => $user->id,
             'name'     => $user->name,
             'username' => $user->username,
             'email'    => $user->email,
+            // بيانات المندوب المرتبط (قد تكون null إن لم يكن مندوباً بعد)
+            'phone'    => $agent?->phone,
+            'country'  => $agent?->country,
+            'company'  => $agent?->company,
+            'notes'    => $agent?->notes,
         ]);
     }
 
